@@ -1,0 +1,54 @@
+#include "/Engine/Public/Platform.ush"
+
+int m_nType;
+
+float4 testColor;
+
+void MainVS(
+	in float4 InPosition : ATTRIBUTE0,
+	in float4 InColor : ATTRIBUTE1,
+	in uint GlobalVertexId : SV_VertexID,
+	out float4 OutPosition : SV_POSITION,
+	out float4 OutColor : COLOR0
+	)
+{
+	if(m_nType==2)
+	{
+		OutPosition = InPosition;
+		OutColor = InColor;
+		return;
+	}
+	if (GlobalVertexId == 0)
+	{
+		OutPosition = float4(0, 0, 0, 1);
+		if (m_nType == 0)
+		{
+			OutColor = InColor;
+
+		}
+		else
+		{
+			OutColor = float4(1, 0, 0, 1);
+		}
+		
+	}
+	else if (GlobalVertexId == 1)
+	{
+		OutPosition = float4(1, 0, 0, 1);
+		OutColor = float4(0, 1, 0, 1);
+	}
+	else if (GlobalVertexId == 2)
+	{
+		OutPosition = float4(0, 1, 0, 1);
+		OutColor = float4(0, 0, 1, 1);
+	}
+}
+
+void MainPS(
+	in float4 InPosition : SV_POSITION,
+	in float4 InColor : COLOR0,
+	out float4 OutColor : SV_Target0)
+{
+	OutColor = InColor;
+
+}
