@@ -66,8 +66,8 @@ Intermediate/
 *.class
 
 # Ignore some Unreal Engine specific files
-*.uasset
-*.umap
+#*.uasset
+#*.umap
 *.ubulk
 *.upk
 
