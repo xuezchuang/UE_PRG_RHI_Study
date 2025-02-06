@@ -24,7 +24,7 @@
 		},
 		{
 			"Name": "mTest",
-			"Enabled": true
+			"Enabled": false
 		},
 		{
 			"Name": "mViewport",
@@ -32,7 +32,21 @@
 		},
 		{
 			"Name": "TPViewport",
-			"Enabled": true
+			"Enabled": false
+		},
+		{
+			"Name": "DarkerNodes",
+			"Enabled": true,
+			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/4b3441f0228a40ec9ca986489a5bd682"
+		},
+		{
+			"Name": "DialogueBuilder",
+			"Enabled": true,
+			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/0757846060534a32aa333e37f9e2706d"
+		},
+		{
+			"Name": "mToolbutton",
+			"Enabled": false
 		}
 	]
 }

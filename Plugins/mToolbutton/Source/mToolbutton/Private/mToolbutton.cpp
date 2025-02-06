@@ -129,16 +129,16 @@ void FmToolbuttonModule::RegisterMenus()
 		}
 	}
 
-	{
-		UToolMenu* ToolbarMenu = UToolMenus::Get()->ExtendMenu("AssetEditor.BlueprintEditor.ToolBar");
-		{
-			FToolMenuSection& Section = ToolbarMenu->FindOrAddSection("PluginTools");
-			{
-				FToolMenuEntry& Entry = Section.AddEntry(FToolMenuEntry::InitToolBarButton(FmToolbuttonCommands::Get().PluginAction));
-				Entry.SetCommandList(PluginCommands);
-			}
-		}
-	}
+	//{
+	//	UToolMenu* ToolbarMenu = UToolMenus::Get()->ExtendMenu("AssetEditor.BlueprintEditor.ToolBar");
+	//	{
+	//		FToolMenuSection& Section = ToolbarMenu->FindOrAddSection("PluginTools");
+	//		{
+	//			FToolMenuEntry& Entry = Section.AddEntry(FToolMenuEntry::InitToolBarButton(FmToolbuttonCommands::Get().PluginAction));
+	//			Entry.SetCommandList(PluginCommands);
+	//		}
+	//	}
+	//}
 
 }
 

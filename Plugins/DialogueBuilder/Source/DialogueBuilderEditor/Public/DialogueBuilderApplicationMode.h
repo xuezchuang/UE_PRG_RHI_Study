@@ -13,10 +13,14 @@ class DIALOGUEBUILDEREDITOR_API FDialogueBuilderApplicationMode : public FBluepr
 public:
 	// Interface of FBlueprintEditorApplicationMode
 	FDialogueBuilderApplicationMode(TSharedPtr<class FDialogueBuilderCustomEditor> InDialogueBuilderEditor);
+	//FDialogueBuilderApplicationMode(class FDialogueBuilderCustomEditor* InDialogueBuilderEditor);
+	virtual ~FDialogueBuilderApplicationMode();
 	virtual void RegisterTabFactories(TSharedPtr<FTabManager> InTabManager) override;
 	virtual void PostActivateMode() override;
-
+	void ClickDialogueBuilderGraphTab();
 protected:
 	TWeakPtr<FDialogueBuilderCustomEditor> DialogueBuilderEditor;
+	FDialogueBuilderCustomEditor* InDialogueBuilderEditorRef;
+	//TSharedPtr<FDialogueBuilderCustomEditor> DialogueBuilderEditor;
 	FWorkflowAllowedTabSet StardardTabFactories;
 };

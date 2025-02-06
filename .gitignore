@@ -68,8 +68,8 @@ Intermediate/
 # Ignore some Unreal Engine specific files
 #*.uasset
 #*.umap
-*.ubulk
-*.upk
+#*.ubulk
+#*.upk
 
 # Ignore Cache and Backup files
 *.cache

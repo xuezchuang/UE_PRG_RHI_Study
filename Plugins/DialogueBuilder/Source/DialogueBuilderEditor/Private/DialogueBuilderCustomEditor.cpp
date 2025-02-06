@@ -1,6 +1,8 @@
 // Copyright 2022 Greg Shynkar. All Rights Reserved
 
 #include "DialogueBuilderCustomEditor.h"
+#include "ToolMenus/Public/ToolMenuEntry.h"
+#include "DialogueUICommands.h"
 
 #define LOCTEXT_NAMESPACE "DialogueBuilderCustomEditor"
 
@@ -17,10 +19,14 @@ FDialogueBuilderCustomEditor::FDialogueBuilderCustomEditor()
 /** Destructor */
 FDialogueBuilderCustomEditor::~FDialogueBuilderCustomEditor()
 {
-
+	//FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(TEXT("222")));
 }
 
-void FDialogueBuilderCustomEditor::InitDialogueAssetEditor(const EToolkitMode::Type Mode, const TSharedPtr< class IToolkitHost >& InitToolkitHost,TArray<class UDialogueBuilderBlueprint*>& InBlueprints, bool bShouldOpenInDefaultsMode)
+void FDialogueBuilderCustomEditor::InitDialogueAssetEditor(
+	const EToolkitMode::Type Mode, 
+	const TSharedPtr< class IToolkitHost >& InitToolkitHost,
+	TArray<class UDialogueBuilderBlueprint*>& InBlueprints, 
+	bool bShouldOpenInDefaultsMode)
 {
 	check(InBlueprints.Num() == 1 || bShouldOpenInDefaultsMode);
 	
@@ -46,6 +52,12 @@ void FDialogueBuilderCustomEditor::InitDialogueAssetEditor(const EToolkitMode::T
 
 	CreateDefaultCommands();
 
+	FDialogueUICommands::Register();
+	ToolkitCommands->MapAction(
+		FDialogueUICommands::Get().PluginAction,
+		FExecuteAction::CreateRaw(this, &FDialogueBuilderCustomEditor::InvokeDialogueBuilderGraphTab),
+		FCanExecuteAction());
+
 	CreateGraphCommandList();
 
 	RegisterMenus();
@@ -68,9 +80,20 @@ void FDialogueBuilderCustomEditor::InitDialogueAssetEditor(const EToolkitMode::T
 	
 	InitalizeExtenders();
 
+	//TSharedPtr<FExtender> ToolbarExtender = MakeShareable(new FExtender);
+	//ToolbarExtender->AddToolBarExtension("Settings", EExtensionHook::Before, nullptr,
+	//	FToolBarExtensionDelegate::CreateRaw(this, &FDialogueBuilderCustomEditor::ToolButtonClicked));
+	//AddToolbarExtender(ToolbarExtender);
+
 	RegenerateMenusAndToolbars();
 
-	AddApplicationMode(FDialogueBuilderCustomEditorModes::DialogueBuilderEditorMode1, MakeShareable(new FDialogueBuilderApplicationMode(SharedThis(this))));
+
+	TSharedPtr<FDialogueBuilderCustomEditor> SharedEditorRef = StaticCastSharedRef<FDialogueBuilderCustomEditor>(AsShared());
+	AddApplicationMode(
+		FDialogueBuilderCustomEditorModes::DialogueBuilderEditorMode1, 
+		//MakeShareable(new FDialogueBuilderApplicationMode(SharedThis(this))));
+		MakeShareable(new FDialogueBuilderApplicationMode(SharedEditorRef)));
+
 	SetCurrentMode(FDialogueBuilderCustomEditorModes::DialogueBuilderEditorMode1);
 
 	// Post-layout initialization
@@ -247,6 +270,11 @@ void FDialogueBuilderCustomEditor::CreateGraphCommandList()
 		);
 	}
     
+}
+
+void FDialogueBuilderCustomEditor::ToolButtonClicked(FToolBarBuilder& ToolbarBuilder)
+{
+	InvokeDialogueBuilderGraphTab();
 }
 
 void FDialogueBuilderCustomEditor::InvokeDialogueBuilderGraphTab()

@@ -39,7 +39,9 @@ public class DialogueBuilderEditor : ModuleRules
                 "ToolMenus",
                 "InputCore",
 				"ApplicationCore",
-				"DialogueBuilder"
+				"DialogueBuilder",
+                 "Kismet"
+
             }
             );
 			

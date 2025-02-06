@@ -88,8 +88,10 @@ public:
 	// Create and assign commands for graph tab;
 	void CreateGraphCommandList();
 
+	void ToolButtonClicked(FToolBarBuilder& ToolbarBuilder);
+
 	// Open Tabs while open dialogue asset;
-	virtual void InvokeDialogueBuilderGraphTab(); 
+	void InvokeDialogueBuilderGraphTab(); 
 
 	//~ Begin FEditorUndoClient Interface
 	virtual void	PostUndo(bool bSuccess) override;
@@ -135,5 +137,6 @@ private:
 	UEdGraph* DialogueBuilderGraph;
 	UEdGraph* EventGraphRef;
 
+	//TSharedRef<FDialogueBuilderCustomEditor> SharedEditorRef;
 };
 

@@ -1,77 +1,87 @@
 // Copyright 2022 Greg Shynkar. All Rights Reserved
 
 #include "DialogueBuilderApplicationMode.h"
+#include "Framework/Commands/Commands.h"
+#include "ToolMenus/Public/ToolMenuEntry.h"
+//#include "DialogueBuilderEditorModule.h"
+
+#define LOCTEXT_NAMESPACE "FDialogueBuilderApplicationMode"
+
 
 FDialogueBuilderApplicationMode::FDialogueBuilderApplicationMode(TSharedPtr<class FDialogueBuilderCustomEditor> InDialogueBuilderEditor)
+//FDialogueBuilderApplicationMode::FDialogueBuilderApplicationMode(class FDialogueBuilderCustomEditor* InDialogueBuilderEditor)
 	:FBlueprintEditorApplicationMode(InDialogueBuilderEditor, FDialogueBuilderCustomEditorModes::DialogueBuilderEditorMode1, FDialogueBuilderCustomEditorModes::GetLocalizedMode, false, false)
 {
+	DialogueBuilderEditor.Reset();
 	DialogueBuilderEditor = InDialogueBuilderEditor;
-
+	InDialogueBuilderEditorRef = InDialogueBuilderEditor.Get();
 	// Create the tab factories
 	StardardTabFactories.RegisterFactory(MakeShareable(new FDialogueBuilderGraphTabFactory(InDialogueBuilderEditor)));
 
 	//Create a default layout
-	TabLayout =
-		FTabManager::NewLayout("Standalone_BlueprintEditor_Layout_v17")
-		->AddArea
-		(
-			FTabManager::NewPrimaryArea()->SetOrientation(Orient_Vertical)
-			/*
-			->Split
+	{
+		TabLayout =
+			FTabManager::NewLayout("Standalone_BlueprintEditor_Layout_v17")
+			->AddArea
 			(
-				FTabManager::NewStack()
-				->SetSizeCoefficient(0.186721f)
-				->SetHideTabWell(true)
-				->AddTab(InDialogueBuilderEditor->GetToolbarTabId(), ETabState::OpenedTab)
-			)
-			*/
-			->Split
-			(
-				FTabManager::NewSplitter()->SetOrientation(Orient_Horizontal)
+				FTabManager::NewPrimaryArea()->SetOrientation(Orient_Vertical)
+				/*
 				->Split
 				(
-					FTabManager::NewSplitter()->SetOrientation(Orient_Vertical)
-					->SetSizeCoefficient(0.15f)
-					->Split
-					(
-						FTabManager::NewStack()->SetSizeCoefficient(1.f)
-						->AddTab(FBlueprintEditorTabs::MyBlueprintID, ETabState::OpenedTab)
-					)
+					FTabManager::NewStack()
+					->SetSizeCoefficient(0.186721f)
+					->SetHideTabWell(true)
+					->AddTab(InDialogueBuilderEditor->GetToolbarTabId(), ETabState::OpenedTab)
 				)
-				
+				*/
 				->Split
 				(
-					FTabManager::NewSplitter()->SetOrientation(Orient_Vertical)
-					->SetSizeCoefficient(0.70f)
+					FTabManager::NewSplitter()->SetOrientation(Orient_Horizontal)
 					->Split
 					(
-						FTabManager::NewStack()
-						->SetSizeCoefficient(0.80f)
-						->AddTab("Document", ETabState::ClosedTab)
+						FTabManager::NewSplitter()->SetOrientation(Orient_Vertical)
+						->SetSizeCoefficient(0.15f)
+						->Split
+						(
+							FTabManager::NewStack()->SetSizeCoefficient(1.f)
+							->AddTab(FBlueprintEditorTabs::MyBlueprintID, ETabState::OpenedTab)
+						)
+					)
+
+					->Split
+					(
+						FTabManager::NewSplitter()->SetOrientation(Orient_Vertical)
+						->SetSizeCoefficient(0.70f)
+						->Split
+						(
+							FTabManager::NewStack()
+							->SetSizeCoefficient(0.80f)
+							->AddTab("Document", ETabState::ClosedTab)
+						)
+						->Split
+						(
+							FTabManager::NewStack()
+							->SetSizeCoefficient(0.20f)
+							->AddTab(FBlueprintEditorTabs::CompilerResultsID, ETabState::ClosedTab)
+							->AddTab(FBlueprintEditorTabs::FindResultsID, ETabState::ClosedTab)
+							->AddTab(FBlueprintEditorTabs::BookmarksID, ETabState::ClosedTab)
+						)
 					)
 					->Split
 					(
-						FTabManager::NewStack()
-						->SetSizeCoefficient(0.20f)
-						->AddTab(FBlueprintEditorTabs::CompilerResultsID, ETabState::ClosedTab)
-						->AddTab(FBlueprintEditorTabs::FindResultsID, ETabState::ClosedTab)
-						->AddTab(FBlueprintEditorTabs::BookmarksID, ETabState::ClosedTab)
+						FTabManager::NewSplitter()->SetOrientation(Orient_Vertical)
+						->SetSizeCoefficient(0.15f)
+						->Split
+						(
+							FTabManager::NewStack()->SetSizeCoefficient(1.f)
+							->AddTab(FBlueprintEditorTabs::DetailsID, ETabState::OpenedTab)
+							->AddTab(FBlueprintEditorTabs::PaletteID, ETabState::ClosedTab)
+							->AddTab(FBlueprintEditorTabs::DefaultEditorID, ETabState::ClosedTab)
+						)
 					)
 				)
-				->Split
-				(
-					FTabManager::NewSplitter()->SetOrientation(Orient_Vertical)
-					->SetSizeCoefficient(0.15f)
-					->Split
-					(
-						FTabManager::NewStack()->SetSizeCoefficient(1.f)
-						->AddTab(FBlueprintEditorTabs::DetailsID, ETabState::OpenedTab)
-						->AddTab(FBlueprintEditorTabs::PaletteID, ETabState::ClosedTab)
-						->AddTab(FBlueprintEditorTabs::DefaultEditorID, ETabState::ClosedTab)
-					)
-				)
-			)
-		);
+			);
+	}
 		
 
 	FBlueprintEditorModule& BlueprintEditorModule = FModuleManager::LoadModuleChecked<FBlueprintEditorModule>("Kismet");
@@ -87,9 +97,63 @@ FDialogueBuilderApplicationMode::FDialogueBuilderApplicationMode(TSharedPtr<clas
 		InDialogueBuilderEditor->GetToolbarBuilder()->AddDebuggingToolbar(Toolbar);
 		InDialogueBuilderEditor->GetToolbarBuilder()->AddScriptingToolbar(Toolbar);
 		InDialogueBuilderEditor->GetToolbarBuilder()->AddNewToolbar(Toolbar);
+		//FToolMenuSection& Section = Toolbar->FindOrAddSection("PluginTools");
+		//{
+		//	TSharedPtr<class FUICommandList> PluginCommands = MakeShareable(new FUICommandList);
+		//	FPluginCommands::Register();
+		//	PluginCommands->MapAction(
+		//		FPluginCommands::Get().OpenPluginWindow,
+		//		//FExecuteAction::CreateRaw(this, &FDialogueBuilderApplicationMode::ClickDialogueBuilderGraphTab),
+		//		FExecuteAction::CreateSP(InDialogueBuilderEditorRef, &FDialogueBuilderCustomEditor::InvokeDialogueBuilderGraphTab),
+		//		FCanExecuteAction());
+
+		//	FToolMenuEntry& Entry = Section.AddEntry(FToolMenuEntry::InitToolBarButton(FPluginCommands::Get().OpenPluginWindow));
+		//	Entry.SetCommandList(PluginCommands);
+		//}
 	}
+
+
+
+	//UToolMenu* Toolbar = InDialogueBuilderEditor->GetToolMenuName()
+
+	//const TSharedRef<FUICommandList>& PluginCommands = GetUIContext();
+	//PluginCommands->MapAction(
+	//	FPluginCommands::Get().OpenPluginWindow,
+	//	FExecuteAction::CreateRaw(this, &FDialogueBuilderApplicationMode::ClickDialogueBuilderGraphTab),
+	//	//FExecuteAction::CreateSP(this, &FDialogueBuilderApplicationMode::+),
+	//	FCanExecuteAction());
+	//TSharedPtr<class FUICommandList> PluginCommands = MakeShareable(new FUICommandList);
+
+	//FDialogueBuilderEditorModule& Module = FModuleManager::LoadModuleChecked<FDialogueBuilderEditorModule>("DialogueBuilderEditor");
+	//TSharedPtr<FUICommandList> PluginCommands = Module.GetPluginCommands();
+
+	//FPluginCommands::Register();
+	//TSharedPtr<class FUICommandList> PluginCommands = MakeShareable(new FUICommandList);
+
+	//PluginCommands->MapAction(
+	//	FPluginCommands::Get().OpenPluginWindow,
+	//	FExecuteAction::CreateSP(InDialogueBuilderEditorRef, &FDialogueBuilderCustomEditor::InvokeDialogueBuilderGraphTab),
+	//	FCanExecuteAction());
+
+	//{
+	//	UToolMenu* ToolbarMenu = UToolMenus::Get()->ExtendMenu("AssetEditor.DialogueBuilderEditor.ToolBar");
+	//	{
+	//		FToolMenuSection& Section = ToolbarMenu->FindOrAddSection("PluginTools");
+	//		{
+	//			FToolMenuEntry& Entry = Section.AddEntry(FToolMenuEntry::InitToolBarButton(FPluginCommands::Get().OpenPluginWindow));
+	//			Entry.SetCommandList(PluginCommands);
+	//		}
+	//	}
+	//}
+
+	//InDialogueBuilderEditorRef->GetToolkitCommands()->Append(PluginCommands.ToSharedRef());
 }
 
+
+FDialogueBuilderApplicationMode::~FDialogueBuilderApplicationMode()
+{
+	//FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(TEXT("111")));
+}
 
 void FDialogueBuilderApplicationMode::RegisterTabFactories(TSharedPtr<FTabManager> InTabManager)
 {
@@ -119,3 +183,14 @@ void FDialogueBuilderApplicationMode::PostActivateMode()
 
 	FApplicationMode::PostActivateMode();
 }
+
+void FDialogueBuilderApplicationMode::ClickDialogueBuilderGraphTab()
+{
+	
+	if(InDialogueBuilderEditorRef)
+	{
+		InDialogueBuilderEditorRef->InvokeDialogueBuilderGraphTab();
+	}
+}
+
+#undef LOCTEXT_NAMESPACE
