@@ -9,7 +9,6 @@
 
 
 FDialogueBuilderApplicationMode::FDialogueBuilderApplicationMode(TSharedPtr<class FDialogueBuilderCustomEditor> InDialogueBuilderEditor)
-//FDialogueBuilderApplicationMode::FDialogueBuilderApplicationMode(class FDialogueBuilderCustomEditor* InDialogueBuilderEditor)
 	:FBlueprintEditorApplicationMode(InDialogueBuilderEditor, FDialogueBuilderCustomEditorModes::DialogueBuilderEditorMode1, FDialogueBuilderCustomEditorModes::GetLocalizedMode, false, false)
 {
 	DialogueBuilderEditor.Reset();
@@ -97,56 +96,7 @@ FDialogueBuilderApplicationMode::FDialogueBuilderApplicationMode(TSharedPtr<clas
 		InDialogueBuilderEditor->GetToolbarBuilder()->AddDebuggingToolbar(Toolbar);
 		InDialogueBuilderEditor->GetToolbarBuilder()->AddScriptingToolbar(Toolbar);
 		InDialogueBuilderEditor->GetToolbarBuilder()->AddNewToolbar(Toolbar);
-		//FToolMenuSection& Section = Toolbar->FindOrAddSection("PluginTools");
-		//{
-		//	TSharedPtr<class FUICommandList> PluginCommands = MakeShareable(new FUICommandList);
-		//	FPluginCommands::Register();
-		//	PluginCommands->MapAction(
-		//		FPluginCommands::Get().OpenPluginWindow,
-		//		//FExecuteAction::CreateRaw(this, &FDialogueBuilderApplicationMode::ClickDialogueBuilderGraphTab),
-		//		FExecuteAction::CreateSP(InDialogueBuilderEditorRef, &FDialogueBuilderCustomEditor::InvokeDialogueBuilderGraphTab),
-		//		FCanExecuteAction());
-
-		//	FToolMenuEntry& Entry = Section.AddEntry(FToolMenuEntry::InitToolBarButton(FPluginCommands::Get().OpenPluginWindow));
-		//	Entry.SetCommandList(PluginCommands);
-		//}
 	}
-
-
-
-	//UToolMenu* Toolbar = InDialogueBuilderEditor->GetToolMenuName()
-
-	//const TSharedRef<FUICommandList>& PluginCommands = GetUIContext();
-	//PluginCommands->MapAction(
-	//	FPluginCommands::Get().OpenPluginWindow,
-	//	FExecuteAction::CreateRaw(this, &FDialogueBuilderApplicationMode::ClickDialogueBuilderGraphTab),
-	//	//FExecuteAction::CreateSP(this, &FDialogueBuilderApplicationMode::+),
-	//	FCanExecuteAction());
-	//TSharedPtr<class FUICommandList> PluginCommands = MakeShareable(new FUICommandList);
-
-	//FDialogueBuilderEditorModule& Module = FModuleManager::LoadModuleChecked<FDialogueBuilderEditorModule>("DialogueBuilderEditor");
-	//TSharedPtr<FUICommandList> PluginCommands = Module.GetPluginCommands();
-
-	//FPluginCommands::Register();
-	//TSharedPtr<class FUICommandList> PluginCommands = MakeShareable(new FUICommandList);
-
-	//PluginCommands->MapAction(
-	//	FPluginCommands::Get().OpenPluginWindow,
-	//	FExecuteAction::CreateSP(InDialogueBuilderEditorRef, &FDialogueBuilderCustomEditor::InvokeDialogueBuilderGraphTab),
-	//	FCanExecuteAction());
-
-	//{
-	//	UToolMenu* ToolbarMenu = UToolMenus::Get()->ExtendMenu("AssetEditor.DialogueBuilderEditor.ToolBar");
-	//	{
-	//		FToolMenuSection& Section = ToolbarMenu->FindOrAddSection("PluginTools");
-	//		{
-	//			FToolMenuEntry& Entry = Section.AddEntry(FToolMenuEntry::InitToolBarButton(FPluginCommands::Get().OpenPluginWindow));
-	//			Entry.SetCommandList(PluginCommands);
-	//		}
-	//	}
-	//}
-
-	//InDialogueBuilderEditorRef->GetToolkitCommands()->Append(PluginCommands.ToSharedRef());
 }
 
 
@@ -184,13 +134,5 @@ void FDialogueBuilderApplicationMode::PostActivateMode()
 	FApplicationMode::PostActivateMode();
 }
 
-void FDialogueBuilderApplicationMode::ClickDialogueBuilderGraphTab()
-{
-	
-	if(InDialogueBuilderEditorRef)
-	{
-		InDialogueBuilderEditorRef->InvokeDialogueBuilderGraphTab();
-	}
-}
 
 #undef LOCTEXT_NAMESPACE

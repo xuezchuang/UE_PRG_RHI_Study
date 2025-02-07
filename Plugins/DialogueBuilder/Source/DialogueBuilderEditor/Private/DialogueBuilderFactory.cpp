@@ -17,10 +17,10 @@ bool UDialogueBuilderFactory::ConfigureProperties()
 	return true;
 }
 
-UObject* UDialogueBuilderFactory::FactoryCreateNew(UClass* InClass, UObject* InParent, FName InName, EObjectFlags InFlags, UObject* InContext, FFeedbackContext* InWarn, FName InCallingContext)
-{
-	return FactoryCreateNew(InClass, InParent, InName, InFlags, InContext, InWarn);
-}
+//UObject* UDialogueBuilderFactory::FactoryCreateNew(UClass* InClass, UObject* InParent, FName InName, EObjectFlags InFlags, UObject* InContext, FFeedbackContext* InWarn, FName InCallingContext)
+//{
+//	return FactoryCreateNew(InClass, InParent, InName, InFlags, InContext, InWarn);
+//}
 
 UObject* UDialogueBuilderFactory::FactoryCreateNew(UClass* InClass, UObject* InParent, FName InName, EObjectFlags Flags, UObject* Context, FFeedbackContext* Warn)
 {

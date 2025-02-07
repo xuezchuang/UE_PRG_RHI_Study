@@ -237,13 +237,13 @@ void UDialogueBuilderObject::DebugGetAllIndexes()
 
 	for (int32 x=0; x< DialoguesData.Num(); x++)
 	{
-		UE_LOG(LogTemp, Warning, TEXT(" DebugObject : DialogueID %d"), DialoguesData[x].NodeId);
+		UE_LOG(LogTemp, Display, TEXT(" DebugObject : DialogueID %d"), DialoguesData[x].NodeId);
 
 		for (int32 y=0; y< DialoguesData[x].NextNodesId.Num();++y)
 		{
 			if (DialoguesData[x].TransitionNameToCheck.IsValidIndex(y))
 			{
-				UE_LOG(LogTemp, Warning, TEXT(" DebugObject : DialogueID %d | Connect link to %d | FunctionName %s "),
+				UE_LOG(LogTemp, Display, TEXT(" DebugObject : DialogueID %d | Connect link to %d | FunctionName %s "),
 
 				DialoguesData[x].NodeId, DialoguesData[x].NextNodesId[y], *DialoguesData[x].TransitionNameToCheck[y].ToString());
 				UFunction*TestFunc = FindFunction(DialoguesData[x].TransitionNameToCheck[y]);
@@ -256,12 +256,12 @@ void UDialogueBuilderObject::DebugGetAllIndexes()
 					StructTest test;
 
 					ProcessEvent(TestFunc, &test);
-					UE_LOG(LogTemp, Warning, TEXT("The boolean value is %s"), (test.result ? TEXT("true") : TEXT("false")));
+					UE_LOG(LogTemp, Display, TEXT("The boolean value is %s"), (test.result ? TEXT("true") : TEXT("false")));
 				}
 			}
 			if (x==0 && DialoguesData[x].NextNodesId.Num()>0)
 			{
-				UE_LOG(LogTemp, Warning, TEXT(" DebugObject : DialogueID %d | Connect link to %d "), DialoguesData[x].NodeId, DialoguesData[x].NextNodesId[0]);
+				UE_LOG(LogTemp, Display, TEXT(" DebugObject : DialogueID %d | Connect link to %d "), DialoguesData[x].NodeId, DialoguesData[x].NextNodesId[0]);
 			}
 		}
 	}

@@ -17,7 +17,6 @@ public:
 	virtual ~FDialogueBuilderApplicationMode();
 	virtual void RegisterTabFactories(TSharedPtr<FTabManager> InTabManager) override;
 	virtual void PostActivateMode() override;
-	void ClickDialogueBuilderGraphTab();
 protected:
 	TWeakPtr<FDialogueBuilderCustomEditor> DialogueBuilderEditor;
 	FDialogueBuilderCustomEditor* InDialogueBuilderEditorRef;

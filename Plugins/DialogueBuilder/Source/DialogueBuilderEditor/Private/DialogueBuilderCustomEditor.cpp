@@ -318,8 +318,8 @@ void FDialogueBuilderCustomEditor::InvokeDialogueBuilderGraphTab()
 		DialogueBuilderGraph = DialogueBuilderBlueprint->DialogueBuilderGraph;
 	}
 
-	OpenDocument(DialogueBuilderBlueprint->EvenGraphRef, FDocumentTracker::OpenNewDocument);
-	EventGraphRef = DialogueBuilderBlueprint->EvenGraphRef;
+	//OpenDocument(DialogueBuilderBlueprint->EvenGraphRef, FDocumentTracker::OpenNewDocument);
+	//EventGraphRef = DialogueBuilderBlueprint->EvenGraphRef;
 
 	TSharedRef<FTabPayload_UObject> Payload = FTabPayload_UObject::Make(DialogueBuilderGraph);
 
@@ -636,33 +636,34 @@ void FDialogueBuilderCustomEditor::OnNodeDoubleClickedDB(class UEdGraphNode* Nod
 		UFunction* NewFunction;
 
 		//Search Node in Event Graph;
-		int32 Index = EventGraphRef->Nodes.Find(StateNodeRef->NodeForJump);
-
+		//int32 Index = EventGraphRef->Nodes.Find(StateNodeRef->NodeForJump);
+		int32 Index = DialogueBuilderGraph->Nodes.Find(StateNodeRef->NodeForJump);
+		
 		if (Index == -1)
 		{
-				NewFunction = StateNodeRef->FindFunction("OnDialoguePlay");
-				if (NewFunction)
+			NewFunction = StateNodeRef->FindFunction("OnDialoguePlay");
+			if (NewFunction)
+			{
+				FString FunctionName;
+				FString locFunctionName;
+				locFunctionName = "OnDialoguePlay_NodeID" + FString::FromInt(StateNodeRef->DialogueNodeId);
+				FunctionName = locFunctionName;
+
+				FVector2D SpawnPos = DialogueBuilderGraph->GetGoodPlaceForNewNode();
+
+				UK2Node_CustomEvent* OnDialoguePlayEvent = UK2Node_CustomEvent::CreateFromFunction(SpawnPos, DialogueBuilderGraph, FunctionName, NewFunction, false);
+				OnDialoguePlayEvent->bCanRenameNode = false;
+				OnDialoguePlayEvent->bIsEditable = false;
+
+				StateNodeRef->NodeForJump = OnDialoguePlayEvent;
+				StateNodeRef->OnDialoguePlayFuncName = *FunctionName;
+				StateNodeRef->UpdateNodeAtDialData();
+
+				if (OnDialoguePlayEvent)
 				{
-					FString FunctionName;
-					FString locFunctionName;
-					locFunctionName = "OnDialoguePlay_NodeID" + FString::FromInt(StateNodeRef->DialogueNodeId);
-					FunctionName = locFunctionName;
-
-					FVector2D SpawnPos = EventGraphRef->GetGoodPlaceForNewNode();
-
-					UK2Node_CustomEvent* OnDialoguePlayEvent = UK2Node_CustomEvent::CreateFromFunction(SpawnPos, EventGraphRef, FunctionName, NewFunction, false);
-					OnDialoguePlayEvent->bCanRenameNode = false;
-					OnDialoguePlayEvent->bIsEditable = false;
-
-					StateNodeRef->NodeForJump = OnDialoguePlayEvent;
-					StateNodeRef->OnDialoguePlayFuncName = *FunctionName;
-					StateNodeRef->UpdateNodeAtDialData();
-
-					if (OnDialoguePlayEvent)
-					{
-						JumpToNode(StateNodeRef->NodeForJump, false);
-					}
+					JumpToNode(StateNodeRef->NodeForJump, false);
 				}
+			}
 		}
 		else
 		{
