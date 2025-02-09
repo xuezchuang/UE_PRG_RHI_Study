@@ -40,7 +40,7 @@ Intermediate/
 .idea/
 
 # Ignore Unreal auto-generated files
-/Binaries
+Binaries/
 /DerivedDataCache
 /Intermediate
 /Saved

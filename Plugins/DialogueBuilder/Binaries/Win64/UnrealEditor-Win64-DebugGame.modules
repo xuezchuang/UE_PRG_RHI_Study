@@ -1,8 +1,0 @@
-{
-	"BuildId": "25360045",
-	"Modules": 
-	{
-		"DialogueBuilder": "UnrealEditor-DialogueBuilder-Win64-DebugGame.dll",
-		"DialogueBuilderEditor": "UnrealEditor-DialogueBuilderEditor-Win64-DebugGame.dll"
-	}
-}
