@@ -27,17 +27,17 @@ void SGraphNodeTransition::UpdateGraphNode()
 		.VAlign(VAlign_Center)
 		[
 			SNew(SOverlay)
-			+ SOverlay::Slot()
-		[
-			SNew(SImage)
-			.Image(FAppStyle::GetBrush("Graph.TransitionNode.ColorSpill"))
-		.ColorAndOpacity(this, &SGraphNodeTransition::GetTransitionColor)
-		]
-	+ SOverlay::Slot()
-		[
-			SNew(SImage)
-			.Image(FAppStyle::GetBrush("Graph.TransitionNode.Icon_Inertialization"))
-		]
+				+ SOverlay::Slot()
+				[
+					SNew(SImage)
+						.Image(FAppStyle::GetBrush("Graph.TransitionNode.ColorSpill"))
+						.ColorAndOpacity(this, &SGraphNodeTransition::GetTransitionColor)
+				]
+				+ SOverlay::Slot()
+				[
+					SNew(SImage)
+						.Image(FAppStyle::GetBrush("Graph.TransitionNode.Icon_Inertialization"))
+				]
 		];
 }
 

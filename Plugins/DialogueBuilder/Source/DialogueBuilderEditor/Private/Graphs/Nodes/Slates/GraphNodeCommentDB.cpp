@@ -146,49 +146,49 @@ void SGraphNodeCommentDB::UpdateGraphNode()
 		.VAlign(VAlign_Fill)
 		[
 			SNew(SBorder)
-			.BorderImage(FAppStyle::GetBrush("Kismet.Comment.Background"))
-		.ColorAndOpacity(FLinearColor::White)
-		.BorderBackgroundColor(this, &SGraphNodeCommentDB::GetCommentBodyColor)
-		.Padding(FMargin(3.0f))
-		.AddMetaData<FGraphNodeMetaData>(TagMeta)
-		[
-			SNew(SVerticalBox)
-			.ToolTipText(this, &SGraphNode::GetNodeTooltip)
-		+ SVerticalBox::Slot()
-		.AutoHeight()
-		.HAlign(HAlign_Fill)
-		.VAlign(VAlign_Top)
-		[
-			SAssignNew(TitleBar, SBorder)
-			.BorderImage(FAppStyle::GetBrush("Graph.Node.TitleBackground"))
-		.BorderBackgroundColor(this, &SGraphNodeCommentDB::GetCommentTitleBarColor)
-		.Padding(FMargin(10, 5, 5, 3))
-		.HAlign(HAlign_Fill)
-		.VAlign(VAlign_Center)
-		[
-			SAssignNew(InlineEditableText, SInlineEditableTextBlock)
-			.Style(&CommentStyle)
-		.Text(FText::FromString(CommentNodeRef->CommentText))
-		.OnTextCommitted(this, &SGraphNodeCommentDB::CustOnTextCommitted)
-		.IsSelected(this, &SGraphNodeCommentDB::IsSelectedExclusively)
-		]
-		]
-	+ SVerticalBox::Slot()
-		.AutoHeight()
-		.Padding(1.0f)
-		[
-			ErrorReporting->AsWidget()
-		]
-	+ SVerticalBox::Slot()
-		.AutoHeight()
-		.HAlign(HAlign_Fill)
-		.VAlign(VAlign_Fill)
-		[
-			// NODE CONTENT AREA
-			SNew(SBorder)
-			.BorderImage(FAppStyle::GetBrush("NoBorder"))
-		]
-		]
+				.BorderImage(FAppStyle::GetBrush("Kismet.Comment.Background"))
+				.ColorAndOpacity(FLinearColor::White)
+				.BorderBackgroundColor(this, &SGraphNodeCommentDB::GetCommentBodyColor)
+				.Padding(FMargin(3.0f))
+				.AddMetaData<FGraphNodeMetaData>(TagMeta)
+				[
+					SNew(SVerticalBox)
+						.ToolTipText(this, &SGraphNode::GetNodeTooltip)
+						+ SVerticalBox::Slot()
+						.AutoHeight()
+						.HAlign(HAlign_Fill)
+						.VAlign(VAlign_Top)
+						[
+							SAssignNew(TitleBar, SBorder)
+								.BorderImage(FAppStyle::GetBrush("Graph.Node.TitleBackground"))
+								.BorderBackgroundColor(this, &SGraphNodeCommentDB::GetCommentTitleBarColor)
+								.Padding(FMargin(10, 5, 5, 3))
+								.HAlign(HAlign_Fill)
+								.VAlign(VAlign_Center)
+								[
+									SAssignNew(InlineEditableText, SInlineEditableTextBlock)
+										.Style(&CommentStyle)
+										.Text(FText::FromString(CommentNodeRef->CommentText))
+										.OnTextCommitted(this, &SGraphNodeCommentDB::CustOnTextCommitted)
+										.IsSelected(this, &SGraphNodeCommentDB::IsSelectedExclusively)
+								]
+						]
+						+ SVerticalBox::Slot()
+						.AutoHeight()
+						.Padding(1.0f)
+						[
+							ErrorReporting->AsWidget()
+						]
+						+ SVerticalBox::Slot()
+						.AutoHeight()
+						.HAlign(HAlign_Fill)
+						.VAlign(VAlign_Fill)
+						[
+							// NODE CONTENT AREA
+							SNew(SBorder)
+								.BorderImage(FAppStyle::GetBrush("NoBorder"))
+						]
+				]
 		];
 }
 

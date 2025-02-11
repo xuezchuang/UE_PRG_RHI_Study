@@ -69,32 +69,31 @@ void SDialogueNodeIndex::Construct(const FArguments& InArgs)
 	ChildSlot
 		[
 			SNew(SOverlay)
-			+ SOverlay::Slot()
-		.HAlign(HAlign_Fill)
-		.VAlign(VAlign_Fill)
-
-		[
-			// Add a dummy box here to make sure the widget doesnt get smaller than the brush
-			SNew(SBox)
-			.WidthOverride(IndexBrush->ImageSize.X)
-			.HeightOverride(IndexBrush->ImageSize.Y)
-		]
-	+ SOverlay::Slot()
-		.HAlign(HAlign_Fill)
-		.VAlign(VAlign_Fill)
-		[
-			SNew(SBorder)
-			.BorderImage(IndexBrush)
-		.BorderBackgroundColor(this, &SDialogueNodeIndex::GetColor)
-		.Padding(FMargin(4.0f, 0.0f, 4.0f, 1.0f))
-		.VAlign(VAlign_Center)
-		.HAlign(HAlign_Center)
-		[
-			SNew(STextBlock)
-			.Text(InArgs._Text)
-		.Font(FontRef)
-		]
-		]
+				+ SOverlay::Slot()
+				.HAlign(HAlign_Fill)
+				.VAlign(VAlign_Fill)
+				[
+					// Add a dummy box here to make sure the widget doesnt get smaller than the brush
+					SNew(SBox)
+						.WidthOverride(IndexBrush->ImageSize.X)
+						.HeightOverride(IndexBrush->ImageSize.Y)
+				]
+				+ SOverlay::Slot()
+				.HAlign(HAlign_Fill)
+				.VAlign(VAlign_Fill)
+				[
+					SNew(SBorder)
+						.BorderImage(IndexBrush)
+						.BorderBackgroundColor(this, &SDialogueNodeIndex::GetColor)
+						.Padding(FMargin(4.0f, 0.0f, 4.0f, 1.0f))
+						.VAlign(VAlign_Center)
+						.HAlign(HAlign_Center)
+						[
+							SNew(STextBlock)
+								.Text(InArgs._Text)
+								.Font(FontRef)
+						]
+				]
 		];
 }
 

@@ -14,8 +14,8 @@ FDialogueBuilderApplicationMode::FDialogueBuilderApplicationMode(TSharedPtr<clas
 	DialogueBuilderEditor.Reset();
 	DialogueBuilderEditor = InDialogueBuilderEditor;
 	InDialogueBuilderEditorRef = InDialogueBuilderEditor.Get();
-	// Create the tab factories
-	StardardTabFactories.RegisterFactory(MakeShareable(new FDialogueBuilderGraphTabFactory(InDialogueBuilderEditor)));
+	//// Create the tab factories
+	//StardardTabFactories.RegisterFactory(MakeShareable(new FDialogueBuilderGraphTabFactory(InDialogueBuilderEditor)));
 
 	//Create a default layout
 	{
@@ -84,7 +84,7 @@ FDialogueBuilderApplicationMode::FDialogueBuilderApplicationMode(TSharedPtr<clas
 		
 
 	FBlueprintEditorModule& BlueprintEditorModule = FModuleManager::LoadModuleChecked<FBlueprintEditorModule>("Kismet");
-	BlueprintEditorModule.OnRegisterTabsForEditor().Broadcast(StardardTabFactories, FDialogueBuilderCustomEditorModes::DialogueBuilderEditorMode1, InDialogueBuilderEditor);
+	//BlueprintEditorModule.OnRegisterTabsForEditor().Broadcast(StardardTabFactories, FDialogueBuilderCustomEditorModes::DialogueBuilderEditorMode1, InDialogueBuilderEditor);
 
 	LayoutExtender = MakeShared<FLayoutExtender>();
 	BlueprintEditorModule.OnRegisterLayoutExtensions().Broadcast(*LayoutExtender);
