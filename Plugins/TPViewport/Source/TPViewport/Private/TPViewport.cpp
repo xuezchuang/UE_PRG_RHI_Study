@@ -12,6 +12,7 @@
 #include "Widgets/SViewport.h"
 #include "Slate/SceneViewport.h"
 #include "RenderTestViewportClient.h"
+#include "Interfaces/IPluginManager.h"
 
 static const FName TPViewportTabName("TPViewport");
 
@@ -20,6 +21,9 @@ static const FName TPViewportTabName("TPViewport");
 void FTPViewportModule::StartupModule()
 {
 	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
+	FString PluginShaderDir = FPaths::Combine(IPluginManager::Get().FindPlugin(TEXT("TPViewport"))->GetBaseDir(), TEXT("Shaders"));
+	AddShaderSourceDirectoryMapping(TEXT("/Plugin/TPViewport"), PluginShaderDir);
+	
 	
 	FTPViewportStyle::Initialize();
 	FTPViewportStyle::ReloadTextures();
@@ -91,6 +95,17 @@ void FTPViewportModule::RegisterMenus()
 		{
 			FToolMenuSection& Section = Menu->FindOrAddSection("WindowLayout");
 			Section.AddMenuEntryWithCommandList(FTPViewportCommands::Get().OpenPluginWindow, PluginCommands);
+		}
+	}
+
+	{
+		UToolMenu* ToolbarMenu = UToolMenus::Get()->ExtendMenu("LevelEditor.LevelEditorToolBar.PlayToolBar");
+		{
+			FToolMenuSection& Section = ToolbarMenu->FindOrAddSection("PluginTools");
+			{
+				FToolMenuEntry& Entry = Section.AddEntry(FToolMenuEntry::InitToolBarButton(FTPViewportCommands::Get().OpenPluginWindow));
+				Entry.SetCommandList(PluginCommands);
+			}
 		}
 	}
 

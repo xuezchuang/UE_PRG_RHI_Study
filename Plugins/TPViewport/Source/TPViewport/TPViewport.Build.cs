@@ -29,7 +29,7 @@ public class TPViewport : ModuleRules
 			new string[]
 			{
 				"Core",
-				"mTest",
+				//"mTest",
 				//"mTest",
 				// ... add other public dependencies that you statically link with here ...
 			}
@@ -47,6 +47,8 @@ public class TPViewport : ModuleRules
 				"Engine",
 				"Slate",
 				"SlateCore",
+                "RenderCore",
+                "RHI",
 				//"mTest/SimpleShader",
 				// ... add private dependencies that you statically link with here ...	
 			}

@@ -23,16 +23,8 @@
 			"Enabled": true
 		},
 		{
-			"Name": "mTest",
-			"Enabled": false
-		},
-		{
-			"Name": "mViewport",
-			"Enabled": false
-		},
-		{
 			"Name": "TPViewport",
-			"Enabled": false
+			"Enabled": true
 		},
 		{
 			"Name": "DarkerNodes",
@@ -45,7 +37,7 @@
 			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/0757846060534a32aa333e37f9e2706d"
 		},
 		{
-			"Name": "mToolbutton",
+			"Name": "mTest",
 			"Enabled": false
 		}
 	]

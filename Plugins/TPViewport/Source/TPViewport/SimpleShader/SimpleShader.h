@@ -61,7 +61,7 @@ public:
 	}
 };
 
-class MTEST_API FSimpleRenderer
+class FSimpleRenderer
 {
 public:
 	FSimpleRenderer () {};

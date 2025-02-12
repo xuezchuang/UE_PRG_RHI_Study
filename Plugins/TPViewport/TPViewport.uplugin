@@ -15,16 +15,10 @@
 	"IsExperimentalVersion": false,
 	"Installed": false,
 	"Modules": [
-		{
-			"Name": "TPViewport",
-			"Type": "Editor",
-			"LoadingPhase": "Default"
-		}
-	],
-	"Plugins": [
-		{
-			"Name": "mTest",
-			"Enabled": true
-		}
+    {
+      "Name": "TPViewport",
+      "Type": "Runtime",
+      "LoadingPhase": "PostConfigInit"
+    }
 	]
 }

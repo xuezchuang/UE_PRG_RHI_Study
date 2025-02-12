@@ -2,7 +2,8 @@
 
 #include "CoreMinimal.h"
 #include "UnrealClient.h"
-#include "mTest/SimpleShader/SimpleShader.h"
+#include "../SimpleShader/SimpleShader.h"
+//#include "SimpleShader.h"
 //#include "SimpleShader/SimpleShader.h"
 
 class FRenderTestViewportClient : public FViewportClient

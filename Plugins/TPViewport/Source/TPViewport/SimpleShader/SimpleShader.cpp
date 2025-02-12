@@ -17,8 +17,8 @@
 #include "RenderCommandFence.h"
 #include "Misc/FileHelper.h"
 
-IMPLEMENT_SHADER_TYPE(, FSimpleShaderVS, TEXT("/Plugin/mTest/Private/SimpleShader.usf"), TEXT("MainVS"), SF_Vertex)
-IMPLEMENT_SHADER_TYPE(, FSimpleShaderPS, TEXT("/Plugin/mTest/Private/SimpleShader.usf"), TEXT("MainPS"), SF_Pixel)
+IMPLEMENT_SHADER_TYPE(, FSimpleShaderVS, TEXT("/Plugin/TPViewport/Private/SimpleShader.usf"), TEXT("MainVS"), SF_Vertex)
+IMPLEMENT_SHADER_TYPE(, FSimpleShaderPS, TEXT("/Plugin/TPViewport/Private/SimpleShader.usf"), TEXT("MainPS"), SF_Pixel)
 
 struct FColorVertex
 {
