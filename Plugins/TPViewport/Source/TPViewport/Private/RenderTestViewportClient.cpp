@@ -8,7 +8,7 @@ FRenderTestViewportClient::FRenderTestViewportClient()
 {
 	FString FileName = FPaths::Combine(FPaths::GameSourceDir(), TEXT("data\\Result.PNG"));
 	//renderer.LoadImageToTexture2DEx(FileName, OutRawData, Width, Height);
-	//renderer.LoadImageToTexture2D(FileName, InTexture, Width, Height);
+	renderer.LoadImageToTexture2D(FileName, InTexture, Width, Height);
 	RenderTarget = NewObject<UTextureRenderTarget2D>();
 	RenderTarget->RenderTargetFormat = RTF_RGBA8;
 	//RenderTarget->InitAutoFormat(Width,Height);
@@ -58,14 +58,18 @@ void FRenderTestViewportClient::Draw(FViewport* Viewport, FCanvas* Canvas)
 	}
 	else if (MyTestValue == 1)
 	{
-		FSimpleRenderer tt;
-		tt.Render2(RenderTarget, FVector4(1, 0, 0, 1), 1);// FVector2D(0, 0));
-		FCanvasTileItem Tile(FVector2D::ZeroVector, RenderTarget->GetResource(), Viewport->GetSizeXY(), FLinearColor(1, 1, 1, 1));
+		//FSimpleRenderer tt;
+		//tt.Render2(RenderTarget, FVector4(1, 0, 0, 1), 1);// FVector2D(0, 0));
+		//FCanvasTileItem Tile(FVector2D::ZeroVector, RenderTarget->GetResource(), Viewport->GetSizeXY(), FLinearColor::White);
+
+		renderer.Render(RenderTarget,[](){});
+		FCanvasTileItem Tile(FVector2D::ZeroVector, RenderTarget->GetResource(), Viewport->GetSizeXY(), FLinearColor::White);
+
 		Canvas->DrawItem(Tile);
 	}
 	else if (MyTestValue == 2)
 	{
-		FCanvasTileItem Tile(FVector2D::ZeroVector, InTexture->GetResource(), Viewport->GetSizeXY(), FLinearColor::White);
+		FCanvasTileItem Tile(FVector2D::ZeroVector, InTexture->GetResource(), Viewport->GetSizeXY(), FLinearColor::Black);
 		Canvas->DrawItem(Tile);
 	}
 
@@ -90,8 +94,8 @@ void FRenderTestViewportClient::Draw(FViewport* Viewport, FCanvas* Canvas)
 	
 	//auto region = FUpdateTextureRegion2D(0, 0, 0, 0, Width, Height);
 	//renderer.UpdateTextureRegion(RenderTarget, 0, 1, region, Width * 4, 0, OutRawData.GetData());
-	//FString FileName= FPaths::Combine(FPaths::GameSourceDir(),TEXT("data\\Result.PNG"));
-	////renderer.SaveRenderTargetToFile(RenderTarget, FileName);
+	FString FileName= FPaths::Combine(FPaths::GameSourceDir(),TEXT("data\\Result.PNG"));
+	renderer.SaveRenderTargetToFile(RenderTarget, FileName);
 	//renderer.Render(RenderTarget);
 	//FCanvasTileItem Tile(FVector2D::ZeroVector, RenderTarget->Resource, Viewport->GetSizeXY(), FLinearColor::White);
 	//Canvas->DrawItem(Tile);

@@ -45,11 +45,11 @@ public:
 		TResourceArray<FColorVertex, VERTEXBUFFER_ALIGNMENT> Vertices;
 		Vertices.SetNumUninitialized(3);
 		
-		Vertices[0].Position = FVector4f(0.0f, 0.0f, 0.5f, 1.0f);
+		Vertices[0].Position = FVector4f(-0.5f, -0.5f, 0.0f, 1.0f);
 		Vertices[0].Color = FVector4f(1.0f, 0.0f, 0.0f, 1.0f);
-		Vertices[1].Position = FVector4f(1.0f, 0.0f, 0.5f, 1.0f);
+		Vertices[1].Position = FVector4f(0.5f, -0.5f, 0.0f, 1.0f);
 		Vertices[1].Color = FVector4f(0.0f, 1.0f, 0.0f, 1.0f);
-		Vertices[2].Position = FVector4f(0.0f, 1.0f, 0.5f, 1.0f);
+		Vertices[2].Position = FVector4f(0.0f, 0.5f, 0.0f, 1.0f);
 		Vertices[2].Color = FVector4f(0.0f, 0.0f, 1.0f, 1.0f);
 
 		//FRHIResourceCreateInfo CreateInfo(&Vertices);
@@ -107,9 +107,7 @@ static void DrawTestShaderRenderTarget_RenderThread(
 	FRHICommandListImmediate& RHICmdList,
 	FTextureRenderTargetResource* OutputRenderTargetResource,
 	//const FVector2D& PixelUVSizeValue
-	const FVector4& testColor,
-	int32 nType
-)
+	int32 nType)
 {
 	check(IsInRenderingThread());
 	FRHITexture2D* RenderTargetTexture = OutputRenderTargetResource->GetRenderTargetTexture();
@@ -126,7 +124,6 @@ static void DrawTestShaderRenderTarget_RenderThread(
 		RHICmdList.SetViewport(
 			0, 0, 0.f,
 			DisplacementMapResolution.X, DisplacementMapResolution.Y, 1.f);
-
 
 		// Get shaders.
 		FGlobalShaderMap* GlobalShaderMap = GetGlobalShaderMap(GMaxRHIFeatureLevel);
@@ -145,8 +142,8 @@ static void DrawTestShaderRenderTarget_RenderThread(
 		GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 		SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit, 0);
 
-		VertexShader->SetParameters(RHICmdList, VertexShader.GetVertexShader(), testColor, nType);
-		PixelShader->SetParameters(RHICmdList, PixelShader.GetPixelShader(), testColor, nType);
+		VertexShader->SetParameters(RHICmdList, VertexShader.GetVertexShader(), nType);
+		PixelShader->SetParameters(RHICmdList, PixelShader.GetPixelShader(), nType);
 
 		RHICmdList.SetStreamSource(0, GSimpleVertexBuffer.VertexBufferRHI, 0);
 
@@ -184,26 +181,6 @@ static void DrawTestShaderRenderTarget_RenderThread(
 }
 
 
-void FSimpleRenderer::Render2(class UTextureRenderTarget2D* RenderTarget, const FVector4& testColor, int32 nType)
-{
-	check(IsInGameThread());
-
-	check(RenderTarget);
-	if (!RenderTarget)
-	{
-		return;
-	}
-
-	FTextureRenderTargetResource* TextureRenderTargetResource = RenderTarget->GameThread_GetRenderTargetResource();
-	//ERHIFeatureLevel::Type FeatureLevel = World->Scene->GetFeatureLevel();
-	ENQUEUE_RENDER_COMMAND(CaptureCommand)(
-		[TextureRenderTargetResource,testColor,nType](FRHICommandListImmediate& RHICmdList)
-		{
-			DrawTestShaderRenderTarget_RenderThread(RHICmdList, TextureRenderTargetResource,testColor,nType);
-		}
-	);
-}
-
 void FSimpleRenderer::Render(UTextureRenderTarget2D* RenderTarget, TFunction<void()> OnRenderCompleted)
 {
 	check ( IsInGameThread ());
@@ -218,7 +195,7 @@ void FSimpleRenderer::Render(UTextureRenderTarget2D* RenderTarget, TFunction<voi
 	ENQUEUE_RENDER_COMMAND(CaptureCommand)(
 		[TextureRenderTargetResource, OnRenderCompleted](FRHICommandListImmediate& RHICmdList)
 		{
-			DrawTestShaderRenderTarget_RenderThread(RHICmdList, TextureRenderTargetResource, FVector4(1, 0, 0, 1), 0);// FVector2D(0, 0));
+			DrawTestShaderRenderTarget_RenderThread(RHICmdList, TextureRenderTargetResource,2);// FVector2D(0, 0));
 
 			if (OnRenderCompleted)
 				OnRenderCompleted();

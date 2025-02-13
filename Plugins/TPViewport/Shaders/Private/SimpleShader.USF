@@ -20,11 +20,10 @@ void MainVS(
 	}
 	if (GlobalVertexId == 0)
 	{
-		OutPosition = float4(0, 0, 0, 1);
+		OutPosition = float4(-0.5, -0.5, 0, 1); // 左下角
 		if (m_nType == 0)
 		{
 			OutColor = InColor;
-
 		}
 		else
 		{
@@ -34,13 +33,13 @@ void MainVS(
 	}
 	else if (GlobalVertexId == 1)
 	{
-		OutPosition = float4(1, 0, 0, 1);
+		 OutPosition = float4(0.5, -0.5, 0, 1); // 右下角
 		OutColor = float4(0, 1, 0, 1);
 	}
 	else if (GlobalVertexId == 2)
 	{
-		OutPosition = float4(0, 1, 0, 1);
-		OutColor = float4(0, 0, 1, 1);
+		OutPosition = float4(0, 0.5, 0, 1); // 上中
+		OutColor = float4(0, 0,1 , 1);
 	}
 }
 

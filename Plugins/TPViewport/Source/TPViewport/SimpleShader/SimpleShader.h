@@ -21,11 +21,10 @@ public:
 	void SetParameters(
 		FRHICommandListImmediate& RHICmdList,
 		const TShaderRHIParamRef ShaderRHI,
-		const FVector4& mtestColor,
 		const int32& nType)
 	{
 		SetShaderValue(RHICmdList, ShaderRHI, m_nType, nType);
-		SetShaderValue(RHICmdList, ShaderRHI, testColor,  FVector4f(mtestColor));
+		SetShaderValue(RHICmdList, ShaderRHI, testColor,  FVector4f(1.0f));
 	}
 
 	static bool ShouldCompilePermutation(const FGlobalShaderPermutationParameters& Parameters)
@@ -66,9 +65,14 @@ class FSimpleRenderer
 public:
 	FSimpleRenderer () {};
 
+    /**
+     * Renders the specified render target.
+     *
+     * @param RenderTarget The render target to be rendered.
+     * @param OnRenderCompleted The callback function to be called when the rendering is completed.
+     */
 	void  Render(class  UTextureRenderTarget2D* RenderTarget, TFunction<void()> OnRenderCompleted);
 
-	void  Render2(class  UTextureRenderTarget2D* RenderTarget, const FVector4& testColor, int32 nType);
 	
 	void UpdateTextureRegion(UTextureRenderTarget2D* RenderTarget, int32 MipIndex, uint32 NumRegions, FUpdateTextureRegion2D Region, uint32 SrcPitch, uint32 SrcBpp, uint8* SrcData, TFunction<void(uint8* SrcData)> DataCleanupFunc = [](uint8*) {});
 	
