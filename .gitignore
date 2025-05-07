@@ -83,3 +83,4 @@ Desktop.ini
 
 # Ignore build directories
 /build/
+/Plugins/VisualStudioTools
