@@ -13,6 +13,7 @@
 #include "Slate/SceneViewport.h"
 #include "RenderTestViewportClient.h"
 #include "Interfaces/IPluginManager.h"
+#include "SEditorViewport.h"
 
 static const FName TPViewportTabName("TPViewport");
 
@@ -60,22 +61,42 @@ void FTPViewportModule::ShutdownModule()
 	FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(TPViewportTabName);
 }
 
+class SMyEditorViewport : public SEditorViewport
+{
+public:
+	TSharedPtr<FEditorViewportClient> MyViewportClient;
+
+	virtual TSharedRef<FEditorViewportClient> MakeEditorViewportClient() override
+	{
+		MyViewportClient = MakeShareable(new FRenderTestViewportClient());
+		return MyViewportClient.ToSharedRef();
+	}
+};
+
+
 TSharedRef<SDockTab> FTPViewportModule::OnSpawnPluginTab(const FSpawnTabArgs& SpawnTabArgs)
 {
+	//TSharedRef<SDockTab> Tab = SNew(SDockTab)
+	//	.TabRole(ETabRole::NomadTab)
+	//	[
+	//		SNew(SBox)
+	//		.HAlign(HAlign_Fill)
+	//		.VAlign(VAlign_Fill)
+	//		[
+	//			SAssignNew(ViewportWidget, SEditorViewport)
+	//		]
+	//	];
+
+	//ViewportClient = MakeShareable(new FRenderTestViewportClient());
+	//Viewport = MakeShareable(new FSceneViewport(ViewportClient.Get(), ViewportWidget));
+	//ViewportWidget->SetViewportInterface(Viewport.ToSharedRef());
+
 	TSharedRef<SDockTab> Tab = SNew(SDockTab)
 		.TabRole(ETabRole::NomadTab)
 		[
-			SNew(SBox)
-			.HAlign(HAlign_Fill)
-			.VAlign(VAlign_Fill)
-			[
-				SAssignNew(ViewportWidget, SViewport)
-			]
+			SNew(SMyEditorViewport)
 		];
 
-	ViewportClient = MakeShareable(new FRenderTestViewportClient());
-	Viewport = MakeShareable(new FSceneViewport(ViewportClient.Get(), ViewportWidget));
-	ViewportWidget->SetViewportInterface(Viewport.ToSharedRef());
 
 	return Tab;
 }

@@ -7,15 +7,15 @@
 //#include "SimpleShader.h"
 //#include "SimpleShader/SimpleShader.h"
 
-//class FRenderTestViewportClient : public FEditorViewportClient
-class FRenderTestViewportClient : public FViewportClient
+class FRenderTestViewportClient : public FEditorViewportClient
+//class FRenderTestViewportClient : public FViewportClient
 {
 public:
 	FRenderTestViewportClient();
 
-	virtual void Draw(FViewport* Viewport, FCanvas* Canvas)override;
+	//virtual void Draw(FViewport* Viewport, FCanvas* Canvas)override;
 
-	//virtual void DrawCanvas(FViewport& InViewport, FSceneView& View, FCanvas& Canvas)override;
+	virtual void DrawCanvas(FViewport& InViewport, FSceneView& View, FCanvas& InCanvas)override;
 
 	class UTextureRenderTarget2D* RenderTarget;
 

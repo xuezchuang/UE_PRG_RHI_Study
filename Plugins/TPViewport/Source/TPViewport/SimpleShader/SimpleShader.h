@@ -8,11 +8,14 @@ class FSimpleShader : public FGlobalShader
 {
 	DECLARE_INLINE_TYPE_LAYOUT(FSimpleShader, NonVirtual);
 public:
-	FSimpleShader() {}
+	FSimpleShader()
+	{
+		int a = 0;
+	}
 
 	FSimpleShader(const ShaderMetaType::CompiledShaderInitializerType& Initializer)
 		: FGlobalShader(Initializer)
-	{
+	{		
 		m_nType.Bind(Initializer.ParameterMap, TEXT("m_nType"));
 		testColor.Bind(Initializer.ParameterMap, TEXT("testColor"));
 	}

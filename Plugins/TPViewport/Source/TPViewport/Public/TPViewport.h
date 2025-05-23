@@ -29,6 +29,7 @@ private:
 	TSharedPtr<class FUICommandList> PluginCommands;
 
 	TSharedPtr<class FSceneViewport> Viewport;
-	TSharedPtr<class SViewport> ViewportWidget;
+	//TSharedPtr<class SViewport> ViewportWidget;
+	TSharedPtr<class SEditorViewport> ViewportWidget;
 	TSharedPtr<class FRenderTestViewportClient> ViewportClient;
 };

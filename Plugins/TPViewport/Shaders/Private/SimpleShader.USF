@@ -12,12 +12,12 @@ void MainVS(
 	out float4 OutColor : COLOR0
 	)
 {
-	if(m_nType==2)
-	{
-		OutPosition = InPosition;
-		OutColor = InColor;
-		return;
-	}
+	//if (m_nType == 40)
+	//{
+	//	OutPosition = InPosition;
+	//	OutColor = InColor;
+	//	return;
+	//}
 	if (GlobalVertexId == 0)
 	{
 		OutPosition = float4(-0.5, -0.5, 0, 1); // ×óÏÂ½Ç
@@ -28,8 +28,7 @@ void MainVS(
 		else
 		{
 			OutColor = float4(1, 0, 0, 1);
-		}
-		
+		}	
 	}
 	else if (GlobalVertexId == 1)
 	{
