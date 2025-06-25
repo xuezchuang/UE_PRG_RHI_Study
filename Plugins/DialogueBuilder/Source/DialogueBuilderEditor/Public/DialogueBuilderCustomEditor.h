@@ -88,7 +88,7 @@ public:
 	// Create and assign commands for graph tab;
 	void CreateGraphCommandList();
 
-	void ToolButtonClicked(FToolBarBuilder& ToolbarBuilder);
+	void ToolButtonClicked(FToolBarBuilder& ToolbarBuilder, const TSharedRef<FUICommandList> InToolkitCommands);
 
 	// Open Tabs while open dialogue asset;
 	void InvokeDialogueBuilderGraphTab(); 

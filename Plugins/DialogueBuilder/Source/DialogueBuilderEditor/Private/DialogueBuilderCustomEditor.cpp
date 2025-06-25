@@ -58,6 +58,11 @@ void FDialogueBuilderCustomEditor::InitDialogueAssetEditor(
 		FExecuteAction::CreateRaw(this, &FDialogueBuilderCustomEditor::InvokeDialogueBuilderGraphTab),
 		FCanExecuteAction());
 
+	ToolkitCommands->MapAction(
+		FDialogueUICommands::Get().PluginAction2,
+		FExecuteAction::CreateRaw(this, &FDialogueBuilderCustomEditor::InvokeDialogueBuilderGraphTab),
+		FCanExecuteAction());
+
 	CreateGraphCommandList();
 
 	RegisterMenus();
@@ -80,12 +85,17 @@ void FDialogueBuilderCustomEditor::InitDialogueAssetEditor(
 	
 	InitalizeExtenders();
 
-	//TSharedPtr<FExtender> ToolbarExtender = MakeShareable(new FExtender);
+	TSharedPtr<FExtender> ToolbarExtender = MakeShareable(new FExtender);
 	//ToolbarExtender->AddToolBarExtension("Settings", EExtensionHook::Before, nullptr,
-	//	FToolBarExtensionDelegate::CreateRaw(this, &FDialogueBuilderCustomEditor::ToolButtonClicked));
-	//AddToolbarExtender(ToolbarExtender);
+		//FToolBarExtensionDelegate::CreateRaw(this, &FDialogueBuilderCustomEditor::ToolButtonClicked));
+	ToolbarExtender->AddToolBarExtension("PluginTools",
+										 EExtensionHook::After,
+										 GetToolkitCommands(),
+										 FToolBarExtensionDelegate::CreateSP(this, &FDialogueBuilderCustomEditor::ToolButtonClicked, GetToolkitCommands())
+	);
+	AddToolbarExtender(ToolbarExtender);
 
-	RegenerateMenusAndToolbars();
+	//RegenerateMenusAndToolbars();
 
 
 	TSharedPtr<FDialogueBuilderCustomEditor> SharedEditorRef = StaticCastSharedRef<FDialogueBuilderCustomEditor>(AsShared());
@@ -93,6 +103,10 @@ void FDialogueBuilderCustomEditor::InitDialogueAssetEditor(
 		FDialogueBuilderCustomEditorModes::DialogueBuilderEditorMode1, 
 		//MakeShareable(new FDialogueBuilderApplicationMode(SharedThis(this))));
 		MakeShareable(new FDialogueBuilderApplicationMode(SharedEditorRef)));
+
+	//TSharedPtr<FExtender> ToolbarExtender = GetToolbarExtender();
+	//ToolbarExtender->AddToolBarExtension("Settings", EExtensionHook::Before, nullptr,
+	//									 FToolBarExtensionDelegate::CreateRaw(this, &FDialogueBuilderCustomEditor::ToolButtonClicked));
 
 	SetCurrentMode(FDialogueBuilderCustomEditorModes::DialogueBuilderEditorMode1);
 
@@ -272,9 +286,14 @@ void FDialogueBuilderCustomEditor::CreateGraphCommandList()
     
 }
 
-void FDialogueBuilderCustomEditor::ToolButtonClicked(FToolBarBuilder& ToolbarBuilder)
+void FDialogueBuilderCustomEditor::ToolButtonClicked(FToolBarBuilder& ToolbarBuilder,const TSharedRef<FUICommandList> InToolkitCommands)
 {
-	InvokeDialogueBuilderGraphTab();
+	ToolbarBuilder.BeginSection("Assets");
+	{
+		ToolbarBuilder.AddToolBarButton(FDialogueUICommands::Get().PluginAction2);
+	}
+	ToolbarBuilder.EndSection();
+	//InvokeDialogueBuilderGraphTab();
 }
 
 void FDialogueBuilderCustomEditor::InvokeDialogueBuilderGraphTab()
