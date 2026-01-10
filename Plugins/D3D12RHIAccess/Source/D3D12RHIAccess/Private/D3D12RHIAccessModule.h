@@ -4,8 +4,7 @@
 #include "ID3D12RHIAccessModule.h"
 
 #if WITH_D3D12_RHI
-#include "D3D12RHI.h"
-#include "D3D12Util.h"
+#include "ID3D12DynamicRHI.h"
 #include "Windows/AllowWindowsPlatformTypes.h"
 #include <d3d12.h>
 #include <dxgi1_4.h>

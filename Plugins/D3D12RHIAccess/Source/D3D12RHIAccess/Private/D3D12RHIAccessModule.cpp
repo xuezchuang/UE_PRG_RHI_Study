@@ -4,8 +4,8 @@
 #include "DynamicRHI.h"
 
 #if WITH_D3D12_RHI
-#include "D3D12RHI.h"
-#include "D3D12RHIPrivate.h"
+// Include D3D12 RHI headers
+#include "ID3D12DynamicRHI.h"
 #endif
 
 #define LOCTEXT_NAMESPACE "FD3D12RHIAccessModule"
@@ -54,20 +54,30 @@ void FD3D12RHIAccess::UpdateCachedReferences()
 		return;
 	}
 
-	// Get D3D12 device from the RHI
+	// Get D3D12 device from the RHI using the public interface
 	ID3D12DynamicRHI* D3D12RHI = GetID3D12DynamicRHI();
 	if (D3D12RHI)
 	{
-		CachedDevice = D3D12RHI->RHIGetDevice(0); // Get default adapter device
+		// Get device for the default adapter (index 0)
+		CachedDevice = D3D12RHI->RHIGetDevice(0);
 		CachedCommandQueue = D3D12RHI->RHIGetCommandQueue();
 		
 		if (CachedDevice)
 		{
 			UE_LOG(LogD3D12RHIAccess, Log, TEXT("Successfully obtained D3D12 Device"));
 		}
+		else
+		{
+			UE_LOG(LogD3D12RHIAccess, Warning, TEXT("Failed to get D3D12 Device"));
+		}
+		
 		if (CachedCommandQueue)
 		{
 			UE_LOG(LogD3D12RHIAccess, Log, TEXT("Successfully obtained D3D12 Command Queue"));
+		}
+		else
+		{
+			UE_LOG(LogD3D12RHIAccess, Warning, TEXT("Failed to get D3D12 Command Queue"));
 		}
 	}
 	else
@@ -102,8 +112,7 @@ ID3D12GraphicsCommandList* FD3D12RHIAccess::GetD3D12GraphicsCommandList()
 	if (D3D12RHI)
 	{
 		// In UE5, the command list is typically accessed through the command context
-		// This is a simplified implementation - in practice, you'd need to access
-		// the current command context to get the active command list
+		// Get the graphics command list for the default adapter
 		return D3D12RHI->RHIGetGraphicsCommandList(0);
 	}
 	return nullptr;
