@@ -58,8 +58,8 @@ bool FD3D12IntegrationExample::Initialize()
 	UE_LOG(LogD3D12Integration, Log, TEXT("Successfully obtained D3D12 Device and Command Queue"));
 	
 	// Here you would initialize NVIDIA WaveWorks or other D3D12-based SDK
-	// Example:
-	// GFSDK_WaveWorks_InitD3D12(Device, NULL, GFSDK_WAVEWORKS_API_VERSION);
+	// Example (use the constant name from your NVIDIA SDK version):
+	// GFSDK_WaveWorks_InitD3D12(Device, NULL, GFSDK_WAVEWORKS_API_GUID);
 	
 	bIsInitialized = true;
 	return true;

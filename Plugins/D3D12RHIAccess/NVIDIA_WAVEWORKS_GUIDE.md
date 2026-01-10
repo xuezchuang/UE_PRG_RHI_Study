@@ -250,7 +250,8 @@ bool UWaveWorksComponent::InitializeWaveWorks()
 	}
 
 	// Initialize WaveWorks library
-	HRESULT hr = GFSDK_WaveWorks_InitD3D12(Device, NULL, GFSDK_WaveWorks_API_GUID);
+	// Note: Use GFSDK_WAVEWORKS_API_GUID for the actual NVIDIA SDK version
+	HRESULT hr = GFSDK_WaveWorks_InitD3D12(Device, NULL, GFSDK_WAVEWORKS_API_GUID);
 	if (FAILED(hr))
 	{
 		UE_LOG(LogWaveWorks, Error, TEXT("Failed to initialize WaveWorks: 0x%08X"), hr);

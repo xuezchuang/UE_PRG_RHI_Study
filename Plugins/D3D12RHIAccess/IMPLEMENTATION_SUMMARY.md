@@ -2,7 +2,7 @@
 
 ## Problem Statement
 
-The issue requested a way to expose Unreal Engine 5.2's D3D12 RHI (Rendering Hardware Interface)底层接口 (low-level interfaces) to plugins, enabling integration with NVIDIA SDKs like WaveWorks and other D3D12-based libraries.
+The issue requested a way to expose Unreal Engine 5.2's D3D12 RHI (Rendering Hardware Interface) low-level interfaces to plugins, enabling integration with NVIDIA SDKs like WaveWorks and other D3D12-based libraries.
 
 ## Solution Overview
 
