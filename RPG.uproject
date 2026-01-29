@@ -37,5 +37,9 @@
 			"Name": "mTest",
 			"Enabled": false
 		},
+		{
+			"Name": "D3D12RHIAccess",
+			"Enabled": true
+		}
 	]
 }
