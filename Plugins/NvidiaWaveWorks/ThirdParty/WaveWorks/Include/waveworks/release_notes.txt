@@ -1,0 +1,123 @@
+commit ebdf4a4c3f19ae1a5a8682b21a9868355671ceb5
+Author: mkraemer <mkraemer@nvidia.com>
+Date:   Mon Feb 10 14:07:10 2020 -0800
+
+    Add cmake package config to the build:
+    - make cmake build conditional on finding DX11/12 & Vk
+    - add logic to export cmake config packages
+    - add cmake scripts to download media files from G-Drive
+      (should work outside of nvda intranet)
+    - add zip packager to build
+      (will fail for all build except release: don't want to ship debug builds of waveworks)
+    - misc cleanup & fixes to include search paths
+    
+    note: all dependencies are packaged in library form; only the waveworks code example
+    installs its source tree in the packaged archive. This is temporary until we can
+    share the code sample from its own git repo outisde of our intranet.
+
+commit 38f28312d666c79001efd358a14ba6deb1510782
+Author: ttcheblokov <ttcheblokov@nvidia.com>
+Date:   Mon Feb 3 18:08:12 2020 -0800
+
+    Disabling debug layer in VK
+    
+    Updating to latest WaveWorks
+
+commit c5e7db93e197e664bf789c9eeb8bb16f3853a627
+Author: ttcheblokov <ttcheblokov@nvidia.com>
+Date:   Mon Feb 3 14:18:01 2020 -0800
+
+    Updating to latest WaveWorks
+
+commit 2e5fad8d50251bf7af8f1084310c6b11138dc259
+Author: ttcheblokov <ttcheblokov@nvidia.com>
+Date:   Mon Feb 3 14:15:51 2020 -0800
+
+    Updating to latest fixed nvrhi-applib
+
+commit df93b7f84614401003cfe8d62e0b9c842227cdf4
+Author: ttcheblokov <ttcheblokov@nvidia.com>
+Date:   Mon Feb 3 14:10:31 2020 -0800
+
+    Making VB/IB in ImGUI not volatile
+
+commit d58e4c09de0c242fd604939e413567c6c73965ff
+Author: ttcheblokov <ttcheblokov@nvidia.com>
+Date:   Fri Jan 31 18:31:02 2020 -0800
+
+    Updating to latest NVRHI
+
+commit d630665924c42c4628b258d825a4930cdebde216
+Author: ttcheblokov <ttcheblokov@nvidia.com>
+Date:   Fri Jan 31 17:06:59 2020 -0800
+
+    Added examples that use dynamic linking to WaveWorks
+
+commit 9d9a0dd1e612da9ebb99ae4b763359c21776821b
+Author: ttcheblokov <ttcheblokov@nvidia.com>
+Date:   Tue Jan 21 15:56:14 2020 -0800
+
+    Updating .gitmodules to use https instead of ssh
+
+commit 7788bb5becbabdc47608717ca652fd29b0f7fba0
+Author: mkraemer <mkraemer@nvidia.com>
+Date:   Fri Dec 20 17:44:13 2019 -0800
+
+    Misc fixes:
+    - bump nvrhi-applib & wavworks to ToT
+    - add install target for examples in 'bin' folder
+    - disable dependencies (waveworks / nvrhi-applib) from installing their own targets
+
+commit e13db130168719b10ee48114ced2696a41e9cc7c
+Author: mkraemer <mkraemer@nvidia.com>
+Date:   Fri Dec 20 16:16:35 2019 -0800
+
+    Fix #include's in source files
+
+commit 36b47f2a98036edae869ef8df923bf0a6b79a32b
+Author: Manuel Kraemer <mkraemer@nvidia.com>
+Date:   Thu Dec 19 11:16:58 2019 -0800
+
+    Update readme.md
+    - remove HTML tags for text color (because github does not support them /sigh)
+
+commit 643efb141fbc0e06ec5b3d501dfeb6dfc1f52bf8
+Author: mkraemer <mkraemer@nvidia.com>
+Date:   Thu Dec 19 11:08:55 2019 -0800
+
+    Adding build notes
+
+commit 239e1f7c67394d617a138e8fa4f7a2bd911d0b36
+Author: mkraemer <mkraemer@nvidia.com>
+Date:   Wed Dec 18 17:21:04 2019 -0800
+
+    Remove build warnings from imgui_renderer
+
+commit 0ab5977bdcfe605954b8a4da6c9a395dc5d78581
+Author: mkraemer <mkraemer@nvidia.com>
+Date:   Wed Dec 18 17:17:38 2019 -0800
+
+    Misc fixes:
+    - remove build warnings from float<->int typecasting
+    - fix Vulkan shader bytecode CMake build
+      (now computes proper stage offsets to match nvrhi)
+    - update waveworks & nvrhi-applib dependencies to latest
+    
+    note: all 3 APIs are now functional (DX11/12/Vk), however the Vk sample has a 1ms overhead (2.5ms in DX12 vs 3.7 in Vk)
+
+commit b5468879d62497beeaaf6d1b62922a9d560535c4
+Author: mkraemer <mkraemer@nvidia.com>
+Date:   Tue Dec 17 18:52:19 2019 -0800
+
+    Code migration from p4:
+    - source for the code samples (d3d11, d3d12, vulkan)
+    - add submodules: nvrhi-applib & waveworks
+    - new CMake build system
+    
+    note: code samples all build & run, except Vk (builds but crashes)
+
+commit 10e32409c7f59fbb26b08604f40aa03ad7fac86a
+Author: Manuel Kraemer <mkraemer@nvidia.com>
+Date:   Thu Dec 12 11:41:39 2019 -0800
+
+    Initial commit

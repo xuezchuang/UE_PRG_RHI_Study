@@ -40,6 +40,13 @@
 		{
 			"Name": "D3D12RHIAccess",
 			"Enabled": true
+		},
+		{
+			"Name": "NvidiaWaveWorks",
+			"Enabled": true,
+			"SupportedTargetPlatforms": [
+				"Win64"
+			]
 		}
 	]
 }
