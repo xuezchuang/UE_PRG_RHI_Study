@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>UE 渲染源码学习站</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <header class="epic-header">
+      <div class="epic-logo">EPIC</div>
+      <div class="unreal-logo">U</div>
+      <strong>UNREAL ENGINE</strong>
+      <nav class="top-nav" aria-label="Unreal 顶部导航">
+        <a href="#">概览</a>
+        <a href="#">应用</a>
+        <a href="#">新闻</a>
+        <a href="#">论坛</a>
+        <a href="#">更多⌄</a>
+      </nav>
+      <label class="top-search">
+        <span>⌕</span>
+        <input type="search" placeholder="搜索">
+      </label>
+      <button class="icon-top" type="button" aria-label="语言">◎</button>
+      <button class="login-button" type="button">登录</button>
+      <button class="download-button" type="button">下载</button>
+      <button class="menu-button" type="button" aria-label="菜单">☰</button>
+    </header>
+
+    <button id="directoryToggle" class="directory-bar" type="button">
+      <span>目录</span>
+      <span>⌄</span>
+    </button>
+
+    <div class="site-shell">
+      <aside class="rail" aria-label="文档导航">
+        <label class="search">
+          <span>按标题筛选</span>
+          <input id="searchInput" type="search" placeholder="ShaderCompileWorker / RDG / PSO">
+        </label>
+
+        <div class="doc-version">虚幻引擎5.7文档</div>
+
+        <nav class="main-nav" aria-label="主导航">
+          <button class="nav-button active" type="button" data-view="home">学习路线</button>
+          <button class="nav-button" type="button" data-view="pipeline">渲染管线</button>
+          <button class="nav-button" type="button" data-view="sources">源码地图</button>
+          <button class="nav-button" type="button" data-view="labs">实战实验</button>
+          <button class="nav-button" type="button" data-view="glossary">术语速查</button>
+        </nav>
+
+        <section class="quick-jump">
+          <h2>设计视觉、渲染和图形效果</h2>
+          <div id="moduleNav"></div>
+        </section>
+      </aside>
+
+      <main class="workspace">
+        <header class="workspace-head">
+          <nav class="breadcrumb" aria-label="面包屑">
+            <span>开发者</span>
+            <span>/</span>
+            <span>文档</span>
+            <span>/</span>
+            <span>虚幻引擎5.7</span>
+            <span>/</span>
+            <strong id="viewEyebrow">Learning Path</strong>
+          </nav>
+          <div class="title-row">
+            <h2 id="viewTitle">学习路线</h2>
+            <div class="head-actions">
+              <button id="focusButton" class="tool-button" type="button">聚焦当前模块</button>
+              <a class="tool-button" href="http://127.0.0.1:4177/" aria-label="刷新本地站点">刷新</a>
+            </div>
+          </div>
+        </header>
+
+        <section id="searchResults" class="search-results" hidden></section>
+        <article id="content" class="content-root"></article>
+      </main>
+
+      <aside class="toc-panel" aria-label="当前页面目录">
+        <h2>在这个页面上</h2>
+        <nav id="pageToc"></nav>
+        <h2>相关文档</h2>
+        <div class="related-card" data-related="sources">
+          <strong>源码地图</strong>
+          <span>Renderer / RenderCore / RHI</span>
+        </div>
+        <div class="related-card" data-related="labs">
+          <strong>实战实验</strong>
+          <span>用断点和 RenderDoc 验证</span>
+        </div>
+      </aside>
+    </div>
+
+    <script src="./learning-data.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>

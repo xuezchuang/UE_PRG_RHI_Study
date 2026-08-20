@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 560" role="img" aria-labelledby="title desc">
+  <title id="title">UE render source learning map</title>
+  <desc id="desc">A dark technical diagram showing Unreal Engine rendering stages from game thread to D3D12.</desc>
+  <defs>
+    <linearGradient id="panel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#141b26"/>
+      <stop offset="1" stop-color="#080d14"/>
+    </linearGradient>
+    <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#58c7ff"/>
+      <stop offset="1" stop-color="#1d7dff"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="920" height="560" rx="28" fill="#070b11"/>
+  <path d="M38 84H882M38 168H882M38 252H882M38 336H882M38 420H882M150 34V526M294 34V526M438 34V526M582 34V526M726 34V526" stroke="#162232" stroke-width="1"/>
+  <g fill="none" stroke="#26364b" stroke-width="2">
+    <path d="M108 124C224 68 300 206 406 152S602 93 724 147"/>
+    <path d="M117 404C260 326 337 449 475 376S645 305 806 368"/>
+  </g>
+  <g font-family="Segoe UI, Arial, sans-serif">
+    <text x="58" y="60" fill="#8fa6bf" font-size="18" letter-spacing="2">UE RENDER SOURCE MAP</text>
+    <text x="58" y="94" fill="#f2f7ff" font-size="34" font-weight="700">Frame to GPU</text>
+    <text x="58" y="122" fill="#8fa6bf" font-size="15">Game Thread · Render Thread · RDG · RHI · D3D12</text>
+  </g>
+  <g filter="url(#glow)">
+    <circle cx="744" cy="138" r="76" fill="#11335c" opacity=".65"/>
+    <circle cx="744" cy="138" r="42" fill="url(#blue)" opacity=".85"/>
+  </g>
+  <g font-family="Segoe UI, Arial, sans-serif">
+    <g transform="translate(58 188)">
+      <rect width="178" height="78" rx="14" fill="url(#panel)" stroke="#2b405a"/>
+      <text x="18" y="31" fill="#58c7ff" font-size="14" font-weight="700">01</text>
+      <text x="18" y="56" fill="#f4f8ff" font-size="18" font-weight="700">Scene State</text>
+    </g>
+    <g transform="translate(278 188)">
+      <rect width="178" height="78" rx="14" fill="url(#panel)" stroke="#2b405a"/>
+      <text x="18" y="31" fill="#58c7ff" font-size="14" font-weight="700">02</text>
+      <text x="18" y="56" fill="#f4f8ff" font-size="18" font-weight="700">Shader Map</text>
+    </g>
+    <g transform="translate(498 188)">
+      <rect width="178" height="78" rx="14" fill="url(#panel)" stroke="#2b405a"/>
+      <text x="18" y="31" fill="#58c7ff" font-size="14" font-weight="700">03</text>
+      <text x="18" y="56" fill="#f4f8ff" font-size="18" font-weight="700">RDG Passes</text>
+    </g>
+    <g transform="translate(718 188)">
+      <rect width="144" height="78" rx="14" fill="url(#panel)" stroke="#2b405a"/>
+      <text x="18" y="31" fill="#58c7ff" font-size="14" font-weight="700">04</text>
+      <text x="18" y="56" fill="#f4f8ff" font-size="18" font-weight="700">D3D12</text>
+    </g>
+  </g>
+  <g fill="none" stroke="#58c7ff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M236 227H270"/>
+    <path d="M456 227H490"/>
+    <path d="M676 227H710"/>
+    <path d="M262 219l9 8-9 8M482 219l9 8-9 8M702 219l9 8-9 8"/>
+  </g>
+  <g font-family="Segoe UI, Arial, sans-serif" font-size="14">
+    <text x="64" y="336" fill="#8fa6bf">READING TARGETS</text>
+    <text x="64" y="366" fill="#f2f7ff">Renderer / RenderCore / RHI / D3D12RHI / Shaders</text>
+    <text x="64" y="410" fill="#8fa6bf">VALIDATION LOOP</text>
+    <text x="64" y="440" fill="#f2f7ff">Breakpoint → RDG event → RenderDoc capture → source note</text>
+  </g>
+  <g transform="translate(656 336)" font-family="Segoe UI, Arial, sans-serif">
+    <rect width="206" height="122" rx="18" fill="#0d1520" stroke="#2b405a"/>
+    <text x="22" y="42" fill="#58c7ff" font-size="15" font-weight="700">CURRENT FOCUS</text>
+    <text x="22" y="76" fill="#f2f7ff" font-size="24" font-weight="700">RHI Study</text>
+    <text x="22" y="100" fill="#8fa6bf" font-size="14">PSO · RootSignature</text>
+  </g>
+</svg>

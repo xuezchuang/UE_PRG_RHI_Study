@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark light">
+<title>UE 源码研究笔记</title>
+<style>
+/* ============================================================
+   UE 源码研究笔记 · 单文件静态博客
+   无框架 / 无依赖 / file:// 直接打开
+   ============================================================ */
+:root {
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "Cascadia Code", Consolas, "JetBrains Mono", Menlo, monospace;
+
+  --bg: #0c0e13;
+  --bg-soft: #11141b;
+  --card: #141924;
+  --card-hover: #171d2a;
+  --border: #222938;
+  --border-2: #303a4d;
+  --text: #d7deea;
+  --text-2: #93a0b4;
+  --text-3: #67728a;
+  --accent: #6fb1ff;
+  --accent-dim: rgba(111, 177, 255, .14);
+  --accent-2: #59d6c0;
+  --gold: #e5c07b;
+  --code-bg: #1a2130;
+  --flow-bg: #10141d;
+  --shadow: 0 8px 28px rgba(0, 0, 0, .35);
+  --head-bg: rgba(12, 14, 19, .78);
+}
+[data-theme="light"] {
+  --bg: #f6f7fa;
+  --bg-soft: #ffffff;
+  --card: #ffffff;
+  --card-hover: #ffffff;
+  --border: #e5e8ef;
+  --border-2: #ccd3df;
+  --text: #252c38;
+  --text-2: #5a6577;
+  --text-3: #8a93a5;
+  --accent: #0a6cff;
+  --accent-dim: rgba(10, 108, 255, .10);
+  --accent-2: #0e9488;
+  --gold: #a8752c;
+  --code-bg: #f0f3f8;
+  --flow-bg: #f3f5f9;
+  --shadow: 0 8px 24px rgba(25, 35, 60, .10);
+  --head-bg: rgba(246, 247, 250, .82);
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 15.5px;
+  line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+}
+::selection { background: var(--accent-dim); }
+a { color: inherit; text-decoration: none; }
+code {
+  font-family: var(--font-mono);
+  font-size: .86em;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  padding: 1px 6px;
+  border-radius: 5px;
+  color: var(--accent-2);
+  word-break: break-all;
+}
+
+/* ---------- 顶部进度条 ---------- */
+#progress {
+  position: fixed; top: 0; left: 0; height: 2px; width: 0;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  z-index: 99; transition: width .1s linear;
+}
+
+/* ---------- 头部 ---------- */
+.site-head {
+  position: sticky; top: 0; z-index: 90;
+  background: var(--head-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+.head-inner {
+  max-width: 1880px; margin: 0 auto; padding: 0 32px;
+  height: 60px; display: flex; align-items: center; justify-content: space-between;
+}
+.brand {
+  display: flex; align-items: center; gap: 10px;
+  font-weight: 700; font-size: 16.5px; letter-spacing: .3px;
+}
+.brand .mark {
+  width: 26px; height: 26px; border-radius: 7px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  display: grid; place-items: center;
+  color: #fff; font-size: 13px; font-weight: 800; font-family: var(--font-mono);
+}
+.brand b { background: linear-gradient(90deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.head-right { display: flex; align-items: center; gap: 14px; }
+.head-ver {
+  font-family: var(--font-mono); font-size: 12px; color: var(--text-3);
+  border: 1px solid var(--border); padding: 2px 10px; border-radius: 20px;
+}
+#themeBtn {
+  width: 34px; height: 34px; border-radius: 9px; cursor: pointer;
+  background: var(--card); color: var(--text-2);
+  border: 1px solid var(--border); font-size: 15px; line-height: 1;
+  transition: all .18s;
+}
+#themeBtn:hover { color: var(--accent); border-color: var(--border-2); transform: translateY(-1px); }
+
+/* ---------- 布局容器 ---------- */
+.container { max-width: 1880px; margin: 0 auto; padding: 0 32px; }
+
+/* ---------- 左侧文章导航 ---------- */
+.shell { max-width: 1880px; margin: 0 auto; padding: 0 32px; }
+.site-nav { display: none; }
+@media (min-width: 1180px) {
+  .shell { display: grid; grid-template-columns: 235px minmax(0, 1fr); gap: 44px; }
+  .site-nav {
+    display: block; position: sticky; top: 86px; align-self: start;
+    max-height: calc(100vh - 110px); overflow-y: auto; padding: 12px 0 20px;
+  }
+}
+.site-nav::-webkit-scrollbar { width: 6px; }
+.site-nav::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 3px; }
+.nav-home, .nav-item {
+  display: block; padding: 9px 13px; border-radius: 10px; margin-bottom: 3px;
+  color: var(--text-2); font-size: 13.5px; line-height: 1.5;
+  transition: background .15s, color .15s; border: 1px solid transparent;
+}
+.nav-home { font-weight: 600; }
+.nav-home:hover, .nav-item:hover { color: var(--accent); background: var(--card); }
+.nav-home.on, .nav-item.on { color: var(--accent); background: var(--accent-dim); border-color: var(--accent); }
+.nav-item .nav-date { display: block; font-family: var(--font-mono); font-size: 10.5px; color: var(--text-3); margin-bottom: 1px; }
+.nav-item.on .nav-date { color: var(--accent); opacity: .75; }
+.nav-label {
+  font-size: 11px; color: var(--text-3); letter-spacing: 2.5px;
+  margin: 16px 4px 7px; padding-bottom: 7px; border-bottom: 1px solid var(--border);
+}
+#app { min-height: 70vh; }
+.view { animation: rise .32s ease both; }
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* ---------- 首页 Hero ---------- */
+.hero { padding: 64px 0 8px; }
+.hero h1 {
+  margin: 0 0 14px; font-size: 38px; line-height: 1.25; letter-spacing: .5px;
+  background: linear-gradient(92deg, var(--text) 20%, var(--accent) 75%, var(--accent-2));
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+}
+.hero .tagline { color: var(--text-2); font-size: 16px; max-width: 720px; margin: 0 0 22px; }
+.hero .tagline code { font-size: .82em; }
+.stats { display: flex; gap: 26px; flex-wrap: wrap; margin-bottom: 34px; }
+.stat { display: flex; align-items: baseline; gap: 8px; }
+.stat b { font-size: 22px; font-family: var(--font-mono); color: var(--accent); font-weight: 700; }
+.stat span { color: var(--text-3); font-size: 13px; }
+
+/* ---------- 搜索 / 标签 ---------- */
+.toolbar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+#q {
+  flex: 1 1 280px; max-width: 420px;
+  background: var(--card); border: 1px solid var(--border); color: var(--text);
+  padding: 9px 16px; border-radius: 10px; font-size: 14px; font-family: inherit;
+  outline: none; transition: border-color .18s, box-shadow .18s;
+}
+#q:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
+#q::placeholder { color: var(--text-3); }
+.tagbar { display: flex; gap: 8px; flex-wrap: wrap; }
+.tag-chip {
+  font-size: 12.5px; padding: 4px 13px; border-radius: 20px; cursor: pointer;
+  background: transparent; border: 1px solid var(--border); color: var(--text-2);
+  font-family: var(--font-mono); transition: all .15s; user-select: none;
+}
+.tag-chip:hover { border-color: var(--accent); color: var(--accent); }
+.tag-chip.on { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+
+/* ---------- 文章卡片 ---------- */
+.section-label {
+  display: flex; align-items: center; gap: 12px;
+  color: var(--text-3); font-size: 13px; letter-spacing: 2.5px; margin: 34px 0 6px;
+}
+.section-label::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+.post-list { display: flex; flex-direction: column; gap: 18px; padding-bottom: 10px; }
+.card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+  padding: 24px 28px 20px; position: relative; overflow: hidden;
+  transition: border-color .2s, transform .2s, box-shadow .2s;
+}
+.card::before {
+  content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+  background: linear-gradient(180deg, var(--accent), var(--accent-2));
+  opacity: 0; transition: opacity .2s;
+}
+.card:hover { border-color: var(--border-2); transform: translateY(-2px); box-shadow: var(--shadow); }
+.card:hover::before { opacity: 1; }
+.card-meta { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 8px; }
+.card-meta time { font-family: var(--font-mono); font-size: 12.5px; color: var(--text-3); }
+.card-tags { display: flex; gap: 7px; flex-wrap: wrap; }
+.pill {
+  font-size: 11.5px; font-family: var(--font-mono); padding: 2px 10px; border-radius: 20px;
+  background: var(--accent-dim); color: var(--accent);
+}
+.card-title { margin: 2px 0 10px; font-size: 21px; line-height: 1.4; }
+.card-title a { transition: color .15s; }
+.card:hover .card-title a { color: var(--accent); }
+.card-ex { color: var(--text-2); font-size: 14.5px; margin: 0 0 14px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.card-foot {
+  display: flex; justify-content: space-between; align-items: center;
+  border-top: 1px dashed var(--border); padding-top: 12px;
+  color: var(--text-3); font-size: 13px;
+}
+.card-foot .go { color: var(--accent); font-size: 13.5px; font-weight: 600; }
+.empty { text-align: center; color: var(--text-3); padding: 48px 0; }
+
+/* ---------- 关于 ---------- */
+.about {
+  margin: 40px 0 30px; background: var(--bg-soft);
+  border: 1px solid var(--border); border-radius: 14px; padding: 24px 28px;
+}
+.about h2 { margin: 0 0 10px; font-size: 16px; color: var(--text); }
+.about ul { margin: 0; padding-left: 20px; color: var(--text-2); font-size: 14px; }
+.about li { margin: 5px 0; }
+
+/* ---------- 文章页 ---------- */
+.post-wrap { display: block; padding: 44px 0 10px; }
+@media (min-width: 1380px) {
+  .post-wrap { display: grid; grid-template-columns: minmax(0, 1fr) 210px; gap: 44px; }
+  .post-wrap .toc-aside { display: block; }
+  .toc-details { display: none !important; }
+}
+.crumb { font-size: 13.5px; color: var(--text-3); margin-bottom: 26px; display: inline-flex; align-items: center; gap: 6px; transition: color .15s; }
+.crumb:hover { color: var(--accent); }
+article.post { max-width: none; min-width: 0; }
+article.post h1 {
+  font-size: 30px; line-height: 1.4; margin: 0 0 14px; letter-spacing: .3px;
+}
+.post-meta { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 8px; }
+.post-meta time { font-family: var(--font-mono); font-size: 13px; color: var(--text-3); }
+.post-lead { color: var(--text-2); font-size: 15px; border-left: 3px solid var(--accent); padding: 2px 0 2px 16px; margin: 18px 0 26px; }
+.post-lead code { font-size: .85em; }
+
+/* ---------- 流程总览块 ---------- */
+.flow {
+  background: var(--flow-bg); border: 1px solid var(--border); border-radius: 12px;
+  margin: 26px 0 34px; overflow: hidden;
+}
+.flow-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 9px 18px; border-bottom: 1px solid var(--border);
+  background: var(--card); font-size: 12.5px; color: var(--text-3); letter-spacing: 1.5px;
+}
+.flow-head .legend { display: flex; gap: 14px; letter-spacing: 0; font-size: 12px; }
+.flow-head .legend i { font-style: normal; }
+.flow pre {
+  margin: 0; padding: 20px 22px; overflow-x: auto;
+  font-family: var(--font-mono); font-size: 12.8px; line-height: 1.85;
+  color: var(--text); white-space: pre;
+}
+.flow .gt { color: #7fd18a; } [data-theme="light"] .flow .gt { color: #337a3c; }
+.flow .tg { color: #c8a2e8; } [data-theme="light"] .flow .tg { color: #7d4fb0; }
+.flow .rt { color: #66d3c8; } [data-theme="light"] .flow .rt { color: #0e8d7f; }
+.flow .dim { color: var(--text-3); }
+
+/* ---------- 章节 ---------- */
+.grp { margin: 38px 0; scroll-margin-top: 86px; }
+.grp h2 {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  font-size: 19.5px; margin: 0 0 12px; padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.grp h2 .idx {
+  font-family: var(--font-mono); font-size: 13px; color: var(--accent);
+  border: 1px solid var(--accent); border-radius: 7px; padding: 1px 8px; font-weight: 600;
+}
+.grp h2 .cnt { font-size: 12.5px; color: var(--text-3); font-weight: 400; font-family: var(--font-mono); margin-left: auto; }
+.threadtag {
+  display: inline-block; padding: 1px 10px; border-radius: 20px;
+  font-size: 11.5px; font-weight: 600; letter-spacing: .5px;
+}
+.t-game   { background: rgba(90, 190, 110, .14); color: #6fc47f; }
+.t-graph  { background: rgba(180, 130, 235, .14); color: #b98ae0; }
+.t-render { background: rgba(90, 200, 200, .14); color: #58c4c4; }
+.t-logic  { background: rgba(230, 180, 100, .14); color: #d8a55f; }
+[data-theme="light"] .t-game { color: #2c7a38; }
+[data-theme="light"] .t-graph { color: #7d4fb0; }
+[data-theme="light"] .t-render { color: #0e8d7f; }
+[data-theme="light"] .t-logic { color: #a8702a; }
+
+.keynote {
+  background: var(--bg-soft); border: 1px solid var(--border); border-left: 3px solid var(--accent);
+  border-radius: 0 10px 10px 0; padding: 12px 18px; margin: 0 0 16px;
+  font-size: 14px; color: var(--text-2);
+}
+
+/* ---------- 书签表格 ---------- */
+.tblwrap {
+  border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+  background: var(--card);
+}
+.tblwrap::-webkit-scrollbar, .flow pre::-webkit-scrollbar { height: 8px; }
+.tblwrap::-webkit-scrollbar-thumb, .flow pre::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 4px; }
+table { width: 100%; border-collapse: collapse; font-size: 13.8px; table-layout: fixed; }
+th {
+  text-align: left; color: var(--text-3); font-weight: 600; font-size: 11.5px;
+  letter-spacing: 1.5px; padding: 10px 16px;
+  border-bottom: 1px solid var(--border); background: var(--bg-soft);
+}
+td { padding: 11px 16px; border-bottom: 1px solid var(--border); vertical-align: top; }
+tr:last-child td { border-bottom: none; }
+tbody tr { transition: background .12s; }
+tbody tr:hover td { background: var(--card-hover); }
+col.c-sym { width: 22%; } col.c-loc { width: 30%; } col.c-note { width: 48%; }
+td.sym { font-family: var(--font-mono); color: var(--gold); font-size: 12.8px; word-break: break-word; overflow-wrap: anywhere; }
+td.loc { font-family: var(--font-mono); font-size: 12.3px; color: var(--text-2); }
+td.loc .dir { display: block; font-size: 10.8px; color: var(--text-3); word-break: break-all; margin-bottom: 2px; }
+td.loc b { color: var(--accent); font-weight: 600; }
+td.loc .ln { color: var(--gold); }
+td.note { color: var(--text); font-size: 13.5px; }
+@media (max-width: 720px) {
+  .tblwrap { overflow-x: auto; }
+  table { table-layout: auto; min-width: 640px; }
+}
+
+/* ---------- 复制按钮 ---------- */
+.cp {
+  margin-left: 8px; padding: 1px 8px; font-size: 11px; line-height: 19px;
+  background: transparent; color: var(--text-3); border: 1px solid var(--border);
+  border-radius: 5px; cursor: pointer; font-family: var(--font-sans);
+  transition: all .15s; vertical-align: 1px;
+}
+.cp:hover { background: var(--accent-dim); color: var(--accent); border-color: var(--accent); }
+.cp.ok { background: rgba(90, 190, 110, .15); color: #6fc47f; border-color: rgba(90, 190, 110, .5); }
+
+/* ---------- 关联笔记 ---------- */
+.notes { margin: 40px 0 10px; }
+.notes h2 { font-size: 19px; margin: 0 0 6px; }
+.notes ul { padding-left: 4px; margin: 0; list-style: none; }
+.notes li {
+  position: relative; padding: 8px 0 8px 22px; color: var(--text-2); font-size: 14.5px;
+  border-bottom: 1px dashed var(--border);
+}
+.notes li::before { content: "◆"; position: absolute; left: 2px; top: 9px; font-size: 9px; color: var(--accent-2); }
+
+/* ---------- 上一篇 / 下一篇 ---------- */
+.post-nav {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 44px 0 10px;
+}
+.post-nav a {
+  border: 1px solid var(--border); border-radius: 12px; padding: 15px 18px;
+  background: var(--card); transition: border-color .18s, transform .18s;
+}
+.post-nav a:hover { border-color: var(--accent); transform: translateY(-2px); }
+.post-nav .dir-label { font-size: 12px; color: var(--text-3); display: block; margin-bottom: 3px; }
+.post-nav .t { font-size: 14.5px; font-weight: 600; color: var(--text); }
+.post-nav a.next { text-align: right; }
+.post-nav a.next .t { color: var(--accent); }
+.post-nav a.prev .t { color: var(--accent); }
+@media (max-width: 640px) { .post-nav { grid-template-columns: 1fr; } }
+
+/* ---------- 目录 ---------- */
+.toc-aside { display: none; }
+.toc-aside .toc-box { position: sticky; top: 86px; }
+.toc-aside .toc-title { font-size: 12px; color: var(--text-3); letter-spacing: 2px; margin-bottom: 10px; }
+.toc-aside a {
+  display: block; padding: 5px 0 5px 14px; font-size: 13.2px; color: var(--text-2);
+  border-left: 2px solid var(--border); transition: all .15s; cursor: pointer;
+}
+.toc-aside a:hover { color: var(--accent); border-left-color: var(--accent); }
+.toc-details { margin: 0 0 26px; border: 1px solid var(--border); border-radius: 10px; background: var(--card); }
+.toc-details summary { padding: 10px 16px; cursor: pointer; font-size: 14px; color: var(--text-2); user-select: none; }
+.toc-details .toc-details-inner { padding: 2px 16px 12px; }
+.toc-details a { display: block; padding: 5px 0; font-size: 13.5px; color: var(--text-2); cursor: pointer; }
+.toc-details a:hover { color: var(--accent); }
+
+/* ---------- 页脚 ---------- */
+.site-foot {
+  margin-top: 70px; border-top: 1px solid var(--border);
+  padding: 26px 0 40px; text-align: center; color: var(--text-3); font-size: 12.8px;
+}
+.site-foot .dots { color: var(--border-2); margin: 0 8px; }
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+
+<header class="site-head">
+  <div class="head-inner">
+    <a class="brand" href="#/"><span class="mark">U</span><b>UE 源码研究笔记</b></a>
+    <div class="head-right">
+      <span class="head-ver">UE 5.2.1</span>
+      <button id="themeBtn" title="切换主题">☀</button>
+    </div>
+  </div>
+</header>
+
+<div class="shell">
+  <aside class="site-nav" id="siteNav"></aside>
+  <main id="app"></main>
+</div>
+
+<footer class="site-foot">
+  <div class="container">
+    UE 源码研究笔记 · 单文件静态博客<span class="dots">·</span>无框架无依赖<span class="dots">·</span>file:// 直接打开<span class="dots">·</span>行号对应本地 UE 5.2.1 检出
+  </div>
+</footer>
+
+<script>
+'use strict';
+
+/* ============================================================
+   站点与文章数据 —— 新调查 = 在 POSTS 里追加一个对象
+   行格式:{ s:符号, d:目录, f:文件, l:行号, a:绝对路径, n:角色注记 }
+   ============================================================ */
+
+var SITE = {
+  engine: 'UE 5.2.1',
+  root: 'D:\\UnrealEngine'
+};
+
+var RC = 'D:\\UnrealEngine\\Engine\\Source\\Runtime\\RenderCore';
+var CA = 'D:\\UnrealEngine\\Engine\\Source\\Runtime\\Core';
+
+var POSTS = [
+
+/* ------------------------------------------------------------------ */
+{
+  id: 'render-command-chain',
+  title: '渲染命令投递链:ENQUEUE_RENDER_COMMAND → TaskGraph → RenderThread',
+  navTitle: '渲染命令投递链',
+  date: '2026-08-18',
+  tags: ['RenderCore', 'TaskGraph', '渲染线程'],
+  excerpt: '游戏线程发起的 RHI 资源初始化如何落到渲染线程执行:ENQUEUE_RENDER_COMMAND 宏展开、两阶段任务工厂 TGraphTask、无锁 MPSC 队列、渲染线程消费循环——19 个逐一验证的源码书签。',
+  lead: '主题:游戏线程发起的 RHI 资源初始化(<code>BeginInitResource</code>)如何经 <code>ENQUEUE_RENDER_COMMAND</code> / TaskGraph 落到 RenderThread 执行。书签分组与行号来自 VS 书签窗口(2026-08-18),行号已在源码逐一核对。',
+  flowHead: '调用链总览',
+  flow:
+'<span class="gt">[游戏线程]</span>  <span class="dim">BeginInitResource(Resource)</span>\n' +
+'<span class="gt">  └─</span> ENQUEUE_RENDER_COMMAND(InitCommand)(lambda)   <span class="dim">RenderingThread.h:294 宏</span>\n' +
+'<span class="gt">      └─</span> EnqueueUniqueRenderCommand&lt;Name&gt;(lambda)  <span class="dim">三分支:已在渲染线程直跑 / 投任务 / 无渲染线程内联</span>\n' +
+'<span class="tg">          │   ── 跨线程 ──────────────────────────────────</span>\n' +
+'<span class="tg">          ▼  [TaskGraph 装配]</span>\n' +
+'<span class="tg">          TGraphTask::CreateTask() → FConstructor::ConstructAndDispatchWhenReady()</span>\n' +
+'<span class="tg">          → Setup → SetupPrereqs → PrerequisitesComplete → QueueTask</span>\n' +
+'<span class="tg">          → FTaskGraphCompatibilityImplementation::QueueTask</span>\n' +
+'<span class="tg">          ▼  [投递进渲染线程队列]</span>\n' +
+'<span class="tg">          FNamedTaskThread::EnqueueFromOtherThread</span>\n' +
+'<span class="tg">          → FStallingTaskQueue::Push → FLockFreePointerFIFOBase::Push  <span class="dim">(无锁)</span></span>\n' +
+'<span class="rt">  ──────────────────────────────────────────────────</span>\n' +
+'<span class="rt">[渲染线程 RenderThread0]</span>\n' +
+'<span class="rt">  FRenderingThread 主循环 → ProcessTasksNamedThread → ExecuteTask → DoTask</span>\n' +
+'<span class="rt">    → lambda(RHICmdList) → Resource-&gt;InitResource() → InitRHI()  <span class="dim">← 真正创建 RHI 资源</span>',
+  sections: [
+    {
+      name: 'ENQUEUE_RENDER_COMMAND · 入口宏', chip: ['t-game', '游戏线程'], src: 'RenderCore/Public/RenderingThread.h',
+      keynote: '入口层。<code>BeginInitResource</code>(RenderResource.cpp:371)在游戏线程被组件创建代码调用,宏展开为 <code>EnqueueUniqueRenderCommand&lt;InitCommandName&gt;</code>(lambda);lambda 按值捕获裸指针 <code>Resource</code>。<code>FRenderCommand</code> 基类固定 <code>GetDesiredThread() = RenderThread</code>,这决定了任务的路由终点。',
+      rows: [
+        { s: 'ENQUEUE_RENDER_COMMAND', d: 'RenderCore/Public/', f: 'RenderingThread.h', l: 294, a: RC + '\\Public\\RenderingThread.h',
+          n: '宏定义尾部:展开为 <code>EnqueueUniqueRenderCommand&lt;Type##Name&gt;</code>;<code>##</code> 粘贴出现场结构体 <code>InitCommandName</code>(仅带名字字符串,供 profiling)。' },
+        { s: 'EnqueueUniqueRenderCommand', d: 'RenderCore/Public/', f: 'RenderingThread.h', l: 277, a: RC + '\\Public\\RenderingThread.h',
+          n: '三分支函数体中部:已在渲染线程→立即执行;<code>ShouldExecuteOnRenderThread()</code>→<code>TGraphTask&lt;&gt;::CreateTask().ConstructAndDispatchWhenReady(...)</code>;无渲染线程→内联执行。另有 <code>LAMBDA&amp;</code> 重载 + <code>static_assert(sizeof==0)</code> 强制右值调用(RenderingThread.h:297-299)。' },
+        { s: 'FRenderCommand', d: 'RenderCore/Public/', f: 'RenderingThread.h', l: 153, a: RC + '\\Public\\RenderingThread.h',
+          n: '渲染命令基类:<code>GetDesiredThread()</code> 返回 <code>ENamedThreads::GetRenderThread()</code>;<code>GetSubsequentsMode() = FireAndForget</code>(不建完成事件,省开销)。' }
+      ]
+    },
+    {
+      name: 'TaskGraph 装配 · 两阶段工厂', chip: ['t-graph', 'TaskGraph'], src: 'TaskGraphInterfaces.h / TaskGraph.cpp',
+      keynote: '两阶段工厂:<code>CreateTask()</code> 先分配壳(并发块分配器,FireAndForget 时不建 <code>FGraphEvent</code>),返回一次性 <code>FConstructor</code>;<code>ConstructAndDispatchWhenReady()</code> 用 placement new 把任务类构造进内嵌 <code>TaskStorage</code>(零额外堆分配),再 <code>Setup</code> 注册前置依赖并入队。',
+      rows: [
+        { s: 'TGraphTask', d: 'Core/Public/Async/', f: 'TaskGraphInterfaces.h', l: 1262, a: CA + '\\Public\\Async\\TaskGraphInterfaces.h',
+          n: '静态工厂 <code>CreateTask()</code>:<code>new TGraphTask(Subsequents?, NumPrereq)</code>;模板适配器(TaskGraphInterfaces.h:1198)继承 <code>TConcurrentLinearObject</code>(并发分配)+ <code>FBaseGraphTask</code>(调度状态)。' },
+        { s: 'ConstructAndDispatchWhenReady', d: 'Core/Public/Async/', f: 'TaskGraphInterfaces.h', l: 1213, a: CA + '\\Public\\Async\\TaskGraphInterfaces.h',
+          n: '<code>FConstructor</code> 上 placement new:<code>new (&amp;TaskStorage) TTask(Forward&lt;T&gt;(Args)...)</code>,lambda 在此被 move 进壳内;随后 <code>Setup()</code>。注意:任务可能在函数返回前就已被别的线程执行完。' },
+        { s: 'Setup', d: 'Core/Public/Async/', f: 'TaskGraphInterfaces.h', l: 1405, a: CA + '\\Public\\Async\\TaskGraphInterfaces.h',
+          n: '装配收尾:记录目标线程(<code>TTask::GetDesiredThread()</code>)、注册前置事件,然后进入入队流程。' },
+        { s: 'SetupPrereqs', d: 'Core/Public/Async/', f: 'TaskGraphInterfaces.h', l: 1386, a: CA + '\\Public\\Async\\TaskGraphInterfaces.h',
+          n: '把本任务挂到每个前置 <code>FGraphEvent</code> 的后继列表;无前置时直接进入可执行态。' },
+        { s: 'PrerequisitesComplete', d: 'Core/Public/Async/', f: 'TaskGraphInterfaces.h', l: 826, a: CA + '\\Public\\Async\\TaskGraphInterfaces.h',
+          n: '前置计数归零后的入口(<code>FBaseGraphTask</code>):触发真正的入队。' },
+        { s: 'QueueTask', d: 'Core/Public/Async/', f: 'TaskGraphInterfaces.h', l: 932, a: CA + '\\Public\\Async\\TaskGraphInterfaces.h',
+          n: '<code>FBaseGraphTask::QueueTask</code>:转调 <code>FTaskGraphInterface::Get().QueueTask(this, ..., ThreadToExecuteOn, ...)</code>。' },
+        { s: 'FTaskGraphCompatibilityImplementation::QueueTask', d: 'Core/Private/Async/', f: 'TaskGraph.cpp', l: 1954, a: CA + '\\Private\\Async\\TaskGraph.cpp',
+          n: 'TaskGraph 实现层:按目标线程把节点分派到对应 <code>FNamedTaskThread</code> 的入队函数。' }
+      ]
+    },
+    {
+      name: '队列层 · 无锁 MPSC', chip: ['t-graph', 'TaskGraph'], src: 'TaskGraph.cpp / LockFreeList.h',
+      keynote: '生产者(游戏线程)把任务指针压入渲染线程的无锁 MPSC 队列:<code>EnqueueFromOtherThread</code> → <code>FStallingTaskQueue::Push</code> → 底层 <code>FLockFreePointerFIFOBase::Push</code>(CAS 链表)。消费者是渲染线程的 <code>ProcessTasksNamedThread</code>,取出后 <code>Execute → ExecuteTask → DoTask → lambda</code>。',
+      rows: [
+        { s: 'FNamedTaskThread::EnqueueFromOtherThread', d: 'Core/Private/Async/', f: 'TaskGraph.cpp', l: 806, a: CA + '\\Private\\Async\\TaskGraph.cpp',
+          n: '跨线程入队入口:游戏线程把渲染命令任务压给 RenderThread 的队列,必要时唤醒线程。' },
+        { s: 'FNamedTaskThread::ProcessTasksNamedThread', d: 'Core/Private/Async/', f: 'TaskGraph.cpp', l: 758, a: CA + '\\Private\\Async\\TaskGraph.cpp',
+          n: '消费侧:命名线程主循环里批量取出队列任务并 <code>Execute</code>(你调试截图调用栈中的这一帧)。' },
+        { s: 'FStallingTaskQueue::Push', d: 'Core/Public/Containers/', f: 'LockFreeList.h', l: 682, a: CA + '\\Public\\Containers\\LockFreeList.h',
+          n: '队列包装层:分配无锁链节点(<code>AllocLockFreeLink</code>),支持 stall/唤醒语义。' },
+        { s: 'FLockFreePointerFIFOBase::Push', d: 'Core/Public/Containers/', f: 'LockFreeList.h', l: 555, a: CA + '\\Public\\Containers\\LockFreeList.h',
+          n: '最底层:CAS 无锁 FIFO 链表 Push,多生产者单消费者安全。' }
+      ]
+    },
+    {
+      name: '渲染线程本体与 RHI 命令层', chip: ['t-render', '渲染线程'], src: 'RenderingThread.cpp / RHICommandList.h',
+      keynote: '渲染线程本体与 RHI 命令层:<code>CreateRenderThread</code> 创建线程,<code>FRenderingThread</code> 是其 FRunnable;<code>GameThreadWaitForTask</code> 是反向同步(游戏线程等渲染任务完成);<code>SetShaderParameters</code>/<code>DrawIndexedPrimitive</code> 用 <code>ALLOC_COMMAND</code> 宏把 RHI 命令录进命令列表——同一套线程基础设施的另一半。',
+      rows: [
+        { s: 'CreateRenderThread', d: 'RenderCore/Private/', f: 'RenderingThread.cpp', l: 803, a: RC + '\\Private\\RenderingThread.cpp',
+          n: '引擎启动期创建渲染线程(TLS 缓存初始化等),挂进 TaskGraph 的命名线程体系。' },
+        { s: 'FRenderingThread', d: 'RenderCore/Private/', f: 'RenderingThread.cpp', l: 530, a: RC + '\\Private\\RenderingThread.cpp',
+          n: '渲染线程 <code>FRunnable</code> 本体:<code>Run()</code> → <code>RenderingThreadMain</code>(RenderingThread.cpp:416 附近),主循环喂给 TaskGraph 消费。' },
+        { s: 'GameThreadWaitForTask', d: 'RenderCore/Private/', f: 'RenderingThread.cpp', l: 1211, a: RC + '\\Private\\RenderingThread.cpp',
+          n: '反向路径:游戏线程阻塞等待某个任务图事件(FEvent)完成,如 flush 渲染命令时。' },
+        { s: 'SetShaderParameters', d: 'RHI/Public/', f: 'RHICommandList.h', l: 3302, a: 'D:\\UnrealEngine\\Engine\\Source\\Runtime\\RHI\\Public\\RHICommandList.h',
+          n: '<code>ALLOC_COMMAND(FRHICommandSetShaderParameters&lt;FRHIGraphicsShader&gt;)</code>:把 shader 参数绑定录成 RHI 命令对象进命令列表。' },
+        { s: 'DrawIndexedPrimitive', d: 'RHI/Public/', f: 'RHICommandList.h', l: 3573, a: 'D:\\UnrealEngine\\Engine\\Source\\Runtime\\RHI\\Public\\RHICommandList.h',
+          n: '<code>ALLOC_COMMAND(FRHICommandDrawIndexedPrimitive)(...)</code>:draw call 的录制点;命令列表最终在渲染线程提交给 RHI/D3D12。' }
+      ]
+    }
+  ],
+  notes: [
+    '<code>BeginInitResource</code> / <code>FRenderResource::InitResource</code>:<code>RenderResource.cpp:371</code> / <code>RenderResource.cpp:238</code>——注册进全局 <code>FRenderResourceList</code>,RHI 已初始化时调虚拟 <code>InitDynamicRHI()</code> + <code>InitRHI()</code>。完整展开见下一篇《InitResource 资源链》。',
+    '重载陷阱对:<code>EnqueueUniqueRenderCommand(LAMBDA&amp;&amp;)</code>(RenderingThread.h:259 干活)vs <code>(LAMBDA&amp;)</code>(RenderingThread.h:297 必炸 static_assert),编译期强制 move 语义。',
+    'D3D12 侧的对应链(RDG → view cache → offline/online descriptor → CopyDescriptors → SetComputeRootDescriptorTable)见同目录 <code>render-notes-site</code> 或会话记录。'
+  ]
+},
+
+/* ------------------------------------------------------------------ */
+{
+  id: 'init-resource-chain',
+  title: 'FRenderResource::InitResource 调用链:从你的 ViewportClient 到 HZB Readback',
+  navTitle: 'InitResource 资源链',
+  date: '2026-08-18',
+  tags: ['FRenderResource', 'FSceneViewState', '生命周期'],
+  excerpt: '以 RenderResource.cpp:377 的 Resource->InitResource() 为中心:从 TPViewport 插件打开 Tab 的构造链,到渲染线程上 InitResource 的幂等闸门 / 全局列表 / 虚函数落点,再到 HZB readback 的诞生——26 个验证书签。',
+  lead: '视角中心是 <code>RenderResource.cpp:377</code> 的 <code>Resource-&gt;InitResource()</code>:向上回答"谁在游戏线程触发了它"(TPViewport 插件调试栈,2026-08-18,<code>Resource</code> 其实是 <code>FSceneViewState</code> 自己);向下回答"这行代码在渲染线程执行时发生了什么"。调试栈原帧行号存在 1~5 行语句漂移(如栈显示 EditorViewportClient.cpp:484,实际调用在 479),本文以验证后的行为准。跨线程递送机制见上一篇。',
+  flowHead: '调用链总览',
+  flow:
+'<span class="gt">[游戏线程]</span> 打开 TPViewport Tab\n' +
+'<span class="gt">  └─</span> SMyEditorViewport::MakeEditorViewportClient  <span class="dim">TPViewport.cpp:71(你的插件)</span>\n' +
+'<span class="gt">      └─</span> new FRenderTestViewportClient → 基类 FEditorViewportClient(nullptr)  <span class="dim">RenderTestViewportClient.cpp:10</span>\n' +
+'<span class="gt">          └─</span> ViewState.Allocate(FeatureLevel)  <span class="dim">EditorViewportClient.cpp:479</span>\n' +
+'<span class="gt">              └─</span> FSceneViewStateReference::AllocateInternal → GetRendererModule().AllocateViewState  <span class="dim">SceneView.cpp:376</span>\n' +
+'<span class="gt">                  └─</span> new FSceneViewState  <span class="dim">RendererScene.cpp:6599</span>\n' +
+'<span class="gt">                      ├─ 初始化列表: RHICreateRenderQueryPool(RQT_Occlusion)  <span class="dim">RendererScene.cpp:437 ← 游戏线程直创 GPU 资源,不走 InitResource</span>\n' +
+'<span class="gt">                      └─ BeginInitResource(this)   <span class="dim">RendererScene.cpp:459 ← this 自己就是 FRenderResource</span>\n' +
+'<span class="gt">                          └─</span> ENQUEUE_RENDER_COMMAND(InitCommand){ Resource-&gt;InitResource(); }  <span class="dim">RenderResource.cpp:374-377</span>\n' +
+'<span class="tg">        ── 跨线程递送 = 上一篇:ENQUEUE_RENDER_COMMAND → TGraphTask → 无锁队列 → RenderThread0 ──</span>\n' +
+'<span class="rt">[渲染线程]</span> lambda(RHICmdList) → FRenderResource::InitResource()  <span class="dim">RenderResource.cpp:238</span>\n' +
+'<span class="rt">  ├─</span> ListIndex == INDEX_NONE 幂等闸门  <span class="dim">:240</span>\n' +
+'<span class="rt">  ├─</span> 注册进全局 FRenderResourceList  <span class="dim">:244-248</span>\n' +
+'<span class="rt">  ├─</span> GIsRHIInitialized → InitDynamicRHI() + InitRHI()  <span class="dim">:255-259</span>\n' +
+'<span class="rt">  │    ├─</span> FSceneViewState::InitDynamicRHI → HZBOcclusionTests.InitDynamicRHI  <span class="dim">ScenePrivate.h:1308</span>\n' +
+'<span class="rt">  │    │    └─</span> FHZBOcclusionTester::InitDynamicRHI → new FRHIGPUTextureReadback  <span class="dim">SceneOcclusion.cpp:808 ← 本链真正创建的 GPU 资源</span>\n' +
+'<span class="rt">  │    └─</span> InitRHI():FSceneViewState 未重写 → 基类空实现  <span class="dim">RenderResource.h:116</span>\n' +
+'<span class="rt">  └─</span> MemoryBarrier + 发布 ListIndex  <span class="dim">:262-263</span>',
+  sections: [
+    {
+      name: '上行触发链 · 从插件 Tab 到 ENQUEUE', chip: ['t-game', '游戏线程'], src: '插件 → Engine → Renderer → RenderCore',
+      keynote: '这 8 帧就是调试栈的逐行验证版。要点:<code>FSceneViewState</code> 多重继承了 <code>FRenderResource</code>,所以被初始化的"资源"就是 ViewState 对象本身——把视图状态注册成资源,是为了接收设备重置通知(RendererScene.cpp:456 注释原文)。另外注意 ctor 初始化列表里 <code>RHICreateRenderQueryPool</code> 是游戏线程<b>直接</b> RHI 调用,与 InitResource 渲染线程路径并存于同一个对象。',
+      rows: [
+        { s: 'SMyEditorViewport::MakeEditorViewportClient', d: 'Plugins\\TPViewport\\…\\Private\\', f: 'TPViewport.cpp', l: 71, a: 'D:\\ue\\UE_PRG_RHI_Study\\Plugins\\TPViewport\\Source\\TPViewport\\Private\\TPViewport.cpp',
+          n: '你的插件:SEditorViewport 子类重写该虚函数(声明在 :69),<code>new FRenderTestViewportClient()</code> 并包成 TSharedRef 返回——整条链的起点。' },
+        { s: 'FRenderTestViewportClient::FRenderTestViewportClient', d: 'Plugins\\TPViewport\\…\\Private\\', f: 'RenderTestViewportClient.cpp', l: 10, a: 'D:\\ue\\UE_PRG_RHI_Study\\Plugins\\TPViewport\\Source\\TPViewport\\Private\\RenderTestViewportClient.cpp',
+          n: '构造函数第一行只是基类初始化 <code>: FEditorViewportClient(nullptr)</code>;你的构造体(LoadImageToTexture2D 等)还没执行,链条已在基类构造里展开。' },
+        { s: 'FEditorViewportClient::FEditorViewportClient', d: 'Editor\\UnrealEd\\Private\\', f: 'EditorViewportClient.cpp', l: 479, a: 'D:\\UnrealEngine\\Engine\\Source\\Editor\\UnrealEd\\Private\\EditorViewportClient.cpp',
+          n: '<code>ViewState.Allocate(Scene ? Scene-&gt;GetFeatureLevel() : GMaxRHIFeatureLevel)</code>;你传 nullptr PreviewScene,走 GMaxRHIFeatureLevel。栈帧显示 484(AddViewportClients 行),真实调用在 479。' },
+        { s: 'FSceneViewStateReference::Allocate', d: 'Runtime\\Engine\\Private\\', f: 'SceneView.cpp', l: 379, a: 'D:\\UnrealEngine\\Engine\\Source\\Runtime\\Engine\\Private\\SceneView.cpp',
+          n: '383 调 <code>AllocateInternal</code>;385-386 把 this 挂进全局 <code>GetSceneViewStateList()</code> 链表——引擎遍历所有活动 view state(如 FlushStreamingSaves)靠它。' },
+        { s: 'FSceneViewStateReference::AllocateInternal', d: 'Runtime\\Engine\\Private\\', f: 'SceneView.cpp', l: 367, a: 'D:\\UnrealEngine\\Engine\\Source\\Runtime\\Engine\\Private\\SceneView.cpp',
+          n: '376 <code>Reference = GetRendererModule().AllocateViewState(FeatureLevel, ...)</code>——Engine 模块不能直接 new Renderer 的私有类,必须经 IRendererModule 接口跨模块边界。' },
+        { s: 'FRendererModule::AllocateViewState', d: 'Runtime\\Renderer\\Private\\', f: 'RendererScene.cpp', l: 6599, a: 'D:\\UnrealEngine\\Engine\\Source\\Runtime\\Renderer\\Private\\RendererScene.cpp',
+          n: '<code>new FSceneViewState(FeatureLevel, (FSceneViewState*)ShareOriginTarget)</code>;ViewState 所有权从此归 FSceneViewStateReference(析构走 Destroy → 释放)。' },
+        { s: 'FSceneViewState::FSceneViewState', d: 'Runtime\\Renderer\\Private\\', f: 'RendererScene.cpp', l: 436, a: 'D:\\UnrealEngine\\Engine\\Source\\Runtime\\Renderer\\Private\\RendererScene.cpp',
+          n: '437 初始化列表游戏线程直创遮挡查询池;440 <code>SetFeatureLevel</code>(注释:让 FeatureLevel 切换时收到 Init/ReleaseDynamicRHI 回调);457-459 <code>IsInGameThread() → BeginInitResource(this)</code>,else 分支(461-463)在渲染线程上就直接 <code>InitResource()</code>。' },
+        { s: 'BeginInitResource', d: 'Runtime\\RenderCore\\Private\\', f: 'RenderResource.cpp', l: 371, a: RC + '\\Private\\RenderResource.cpp',
+          n: '函数体仅 5 行:373 LLM_SCOPE(内存统计,你的断点停在这)→ 374 <code>ENQUEUE_RENDER_COMMAND(InitCommand)</code> → 377 lambda 捕获裸指针 <code>Resource</code> 调 <code>Resource-&gt;InitResource()</code> ——本文视角中心;递送机制详见上一篇。' }
+      ]
+    },
+    {
+      name: 'InitResource 内部 · 渲染线程', chip: ['t-render', '渲染线程'], src: 'RenderResource.cpp:238-265',
+      keynote: '模板方法 + 状态发布:<code>InitResource</code> 自己不碰 GPU,它做三件事——幂等闸门(ListIndex)、注册进全局资源列表、虚调用 <code>InitDynamicRHI()</code>/<code>InitRHI()</code>(真正的 GPU 工作在子类重写里)。头文件注明这组函数"only called by the rendering thread"——由 BeginInitResource 的 ENQUEUE 投递保证。',
+      rows: [
+        { s: 'FRenderResource::InitResource', d: 'Runtime\\RenderCore\\Private\\', f: 'RenderResource.cpp', l: 238, a: RC + '\\Private\\RenderResource.cpp',
+          n: '执行体入口;"only called by the rendering thread"契约见 RenderResource.h:127 的声明注释。' },
+        { s: 'ListIndex 幂等闸门', d: 'Runtime\\RenderCore\\Private\\', f: 'RenderResource.cpp', l: 240, a: RC + '\\Private\\RenderResource.cpp',
+          n: '<code>if (ListIndex == INDEX_NONE)</code>:重复 Init 是 no-op。ListIndex 一身两职——"已初始化"标志 + 全局列表下标;构造函数置 INDEX_NONE(RenderResource.cpp:299)。' },
+        { s: 'FRenderResourceList 注册', d: 'Runtime\\RenderCore\\Private\\', f: 'RenderResource.cpp', l: 244, a: RC + '\\Private\\RenderResource.cpp',
+          n: '<code>PLATFORM_NEEDS_RHIRESOURCELIST || !GIsRHIInitialized</code> 时 <code>FRenderResourceList::Get().Allocate(this)</code>(列表类在 RenderResource.cpp:31:TLS free-list + TChunkedArray,免锁扩展)。平台开关默认 1(Core/Public/HAL/Platform.h:487,IOS 在 IOSPlatform.h:76 显式 0)——Windows 上每个资源都注册,为设备重置/FeatureLevel 切换时的全量遍历服务。' },
+        { s: 'InitDynamicRHI + InitRHI', d: 'Runtime\\RenderCore\\Private\\', f: 'RenderResource.cpp', l: 255, a: RC + '\\Private\\RenderResource.cpp',
+          n: '<code>GIsRHIInitialized</code> 时先 <code>InitDynamicRHI()</code> 后 <code>InitRHI()</code>(顺序在 InitPreRHIResources:210-211 的注释里点明:动态资源可依赖静态资源,必须最后初始化)。启动早期 RHI 未就绪时只注册不创建,由 :204 的 InitPreRHIResources 之后补。' },
+        { s: 'MemoryBarrier + 发布', d: 'Runtime\\RenderCore\\Private\\', f: 'RenderResource.cpp', l: 262, a: RC + '\\Private\\RenderResource.cpp',
+          n: '<code>FPlatformMisc::MemoryBarrier()</code> 之后才写 <code>ListIndex</code>,原注释:"there are some multithreaded reads of ListIndex"——先把所有状态初始化完、最后发布标志的标准写法。' }
+      ]
+    },
+    {
+      name: '虚函数落点 · 本例 Resource = FSceneViewState', chip: ['t-logic', '虚函数'], src: 'ScenePrivate.h / SceneRendering.h / SceneOcclusion.cpp',
+      keynote: '虚调用解析结果(本条链):<code>FSceneViewState</code> 只重写 <code>InitDynamicRHI/ReleaseDynamicRHI</code>,转发给成员 <code>HZBOcclusionTests</code>(它自己也是 FRenderResource);真正创建的 GPU 资源是 SM5+ 的 HZB 遮挡结果回读缓冲 <code>FRHIGPUTextureReadback</code>。而 ViewState 最重的 GPU 资源——遮挡查询池——反而在 ctor 初始化列表里游戏线程直接创建,完全不走 InitResource。',
+      rows: [
+        { s: 'class FSceneViewState', d: 'Runtime\\Renderer\\Private\\', f: 'ScenePrivate.h', l: 668, a: 'D:\\UnrealEngine\\Engine\\Source\\Runtime\\Renderer\\Private\\ScenePrivate.h',
+          n: '<code>: public FSceneViewStateInterface, public FRenderResource</code>——多重继承,ViewState 既是给 SceneRenderer 用的视图状态容器,又是一个可初始化/释放的渲染资源。ctor 注释(RendererScene.cpp:456):注册成资源是为了接收 device reset 通知。' },
+        { s: 'FSceneViewState::InitDynamicRHI', d: 'Runtime\\Renderer\\Private\\', f: 'ScenePrivate.h', l: 1308, a: 'D:\\UnrealEngine\\Engine\\Source\\Runtime\\Renderer\\Private\\ScenePrivate.h',
+          n: '重写体一行:<code>HZBOcclusionTests.InitDynamicRHI()</code>;配对的 ReleaseDynamicRHI(:1313)多做几件事:HZB 释放 + <code>EyeAdaptationManager.SafeRelease()</code> + <code>OcclusionFeedback.ReleaseResource()</code>。' },
+        { s: 'FHZBOcclusionTester', d: 'Runtime\\Renderer\\Private\\', f: 'SceneRendering.h', l: 461, a: 'D:\\UnrealEngine\\Engine\\Source\\Runtime\\Renderer\\Private\\SceneRendering.h',
+          n: '<code>: public FRenderResource</code>——组合成员自身也是资源(成员声明在 ScenePrivate.h:720)。注意 InitResource 不会递归:外层 InitDynamicRHI 手动转发,各资源各管各的 Init/Release。' },
+        { s: 'FHZBOcclusionTester::InitDynamicRHI', d: 'Runtime\\Renderer\\Private\\', f: 'SceneOcclusion.cpp', l: 804, a: 'D:\\UnrealEngine\\Engine\\Source\\Runtime\\Renderer\\Private\\SceneOcclusion.cpp',
+          n: '<code>GetFeatureLevel() &gt;= SM5</code> 时 <code>ResultsReadback.Reset(new FRHIGPUTextureReadback(TEXT("HZBGPUReadback")))</code>(:808)——本条调用链真正创建的 GPU 资源:HZB 遮挡测试结果的 GPU→CPU 回读缓冲。验证运行时可在 :808 下断点。' },
+        { s: 'FSceneViewState::InitRHI(未重写)', d: 'Runtime\\RenderCore\\Public\\', f: 'RenderResource.h', l: 116, a: RC + '\\Public\\RenderResource.h',
+          n: '基类空实现 <code>virtual void InitRHI() {}</code>——所以本例 :259 的 InitRHI() 是空调用。对比同对象另一条路径:<code>OcclusionQueryPool(RHICreateRenderQueryPool(RQT_Occlusion))</code>(RendererScene.cpp:437)在游戏线程构造初始化列表里直创。' }
+      ]
+    },
+    {
+      name: '生命周期 · Update / Release / 全局列表', chip: ['t-render', '状态机'], src: 'FRenderResource 状态机的其余边',
+      keynote: 'InitResource 只是状态机的一条边。资源的一生:构造(ListIndex=INDEX_NONE)→ InitResource → [UpdateRHI 原地重建 N 次] → ReleaseResource → 析构(未释放即 Fatal)。释放同样走渲染命令,且支持 16 个/批合并;设备重置时全局列表逆序全量 Release 后再按序 Init。',
+      rows: [
+        { s: 'BeginUpdateResourceRHI', d: 'Runtime\\RenderCore\\Private\\', f: 'RenderResource.cpp', l: 381, a: RC + '\\Private\\RenderResource.cpp',
+          n: '更新命令:RT 上 <code>UpdateRHI()</code>(:287,带 <code>check(IsInRenderingThread())</code>)= ReleaseRHI → ReleaseDynamicRHI → InitDynamicRHI → InitRHI 原地重建,比如顶点数组内容变化时。' },
+        { s: 'BeginReleaseResource', d: 'Runtime\\RenderCore\\Private\\', f: 'RenderResource.cpp', l: 448, a: RC + '\\Private\\RenderResource.cpp',
+          n: '释放命令:RT 上 <code>ReleaseResource()</code>(:267)调 ReleaseRHI + ReleaseDynamicRHI 并把 ListIndex 置回 INDEX_NONE——回到可再 Init 的状态。' },
+        { s: 'FBatchedReleaseResources', d: 'Runtime\\RenderCore\\Private\\', f: 'RenderResource.cpp', l: 390, a: RC + '\\Private\\RenderResource.cpp',
+          n: '批量合并释放:16 个/批合成一个渲染命令(<code>StartBatchedRelease</code>/:436、<code>EndBatchedRelease</code>/:441),组件批量销毁(如关卡卸载)时省命令数;BatchReleased 中间态防双重释放。' },
+        { s: 'ReleaseResourceAndFlush', d: 'Runtime\\RenderCore\\Private\\', f: 'RenderResource.cpp', l: 462, a: RC + '\\Private\\RenderResource.cpp',
+          n: '发释放命令后立刻 <code>FlushRenderingCommands()</code>——调用方需要"确定已释放"(如马上改写 CPU 侧数据)时用,代价是游戏线程阻塞等渲染线程。' },
+        { s: 'InitPreRHIResources', d: 'Runtime\\RenderCore\\Private\\', f: 'RenderResource.cpp', l: 204, a: RC + '\\Private\\RenderResource.cpp',
+          n: '启动补课:RHI 就绪前 InitResource 只注册不创建(GIsRHIInitialized=false 分支);RHI 就绪后按注册顺序先全体 InitRHI 再全体 InitDynamicRHI(:209-211)——顺序保证动态资源依赖的静态资源已就绪。' },
+        { s: 'ReleaseRHIForAllResources', d: 'Runtime\\RenderCore\\Private\\', f: 'RenderResource.cpp', l: 196, a: RC + '\\Private\\RenderResource.cpp',
+          n: '设备重置/挂起:全局列表 <code>ForEachReverse</code> 逆序先全体 ReleaseRHI 再全体 ReleaseDynamicRHI——这就是 FSceneViewState 注册成资源的回报。兄弟接口 <code>ChangeFeatureLevel</code>(:218)同理逆序重建。' },
+        { s: '~FRenderResource', d: 'Runtime\\RenderCore\\Private\\', f: 'RenderResource.cpp', l: 311, a: RC + '\\Private\\RenderResource.cpp',
+          n: '析构防线:<code>EResourceState</code> 状态机(BatchReleased/Deleted)检查;已初始化却没 Release 就 delete → <code>UE_LOG Fatal</code>——FRenderResource 不允许静默泄漏 GPU 资源。' },
+        { s: 'TGlobalResource', d: 'Runtime\\RenderCore\\Public\\', f: 'RenderResource.h', l: 508, a: RC + '\\Public\\RenderResource.h',
+          n: '全局静态资源包装:构造即 InitResource、程序退出时自动 Release,绕开静态初始化顺序问题。例:<code>GTextureSamplerStateCache</code>(RenderResource.cpp:492)。' }
+      ]
+    }
+  ],
+  notes: [
+    '<b>与上一篇的分工</b>:上一篇讲"命令怎么跨线程送达"(ENQUEUE_RENDER_COMMAND → TGraphTask → 无锁队列),本文讲"送达后 InitResource 的语义"(幂等闸门、全局列表、虚函数契约)。两篇拼起来 = <code>BeginInitResource</code> 的完整闭环。',
+    '<b>SnowEngine 对比</b>:SnowEngine 里资源创建是 owner 代码直接 <code>CreateCommittedResource</code>,没有等价物;UE 的 FRenderResource 是"设备重置通知 + 批量释放 + 启动初始化顺序"三件事的统一挂载点,代价是生命周期被强制拆成"游戏线程构造 → 渲染线程 InitRHI"两段式——这就是为什么你在游戏线程的构造函数里只看到 ENQUEUE,而 GPU 对象要到渲染线程才诞生。',
+    '<b>推断(未验证运行时)</b>:lambda 在渲染线程执行时的栈应是 RenderThread0 → ProcessTasksNamedThread → ExecuteTask → DoTask → lambda → InitResource → InitDynamicRHI → FHZBOcclusionTester::InitDynamicRHI;可在 SceneOcclusion.cpp:808 下断点验证。EditorViewportClient.cpp:479 的 ViewState 在编辑器关闭 Tab 时经 FSceneViewStateReference 析构 → Destroy → BeginReleaseResource 走第 4 节的释放链。'
+  ]
+}
+];
+
+/* ============================================================
+   渲染器
+   ============================================================ */
+
+function esc(s) { return String(s); }
+
+function rowHtml(r) {
+  var dir = r.d ? '<span class="dir">' + r.d + '</span>' : '';
+  return '<tr>'
+    + '<td class="sym">' + r.s + '</td>'
+    + '<td class="loc">' + dir + '<b>' + r.f + '</b><span class="ln">:' + r.l + '</span>'
+    + '<button class="cp" data-copy="' + r.a + ':' + r.l + '">复制</button></td>'
+    + '<td class="note">' + r.n + '</td>'
+    + '</tr>';
+}
+
+function sectionHtml(sec, i) {
+  var rows = sec.rows.map(rowHtml).join('');
+  var n = sec.rows.length;
+  return '<section class="grp" id="sec-' + i + '">'
+    + '<h2><span class="idx">' + String(i + 1).padStart(2, '0') + '</span>'
+    + '<span class="threadtag ' + sec.chip[0] + '">' + sec.chip[1] + '</span>'
+    + sec.name
+    + '<span class="cnt">' + n + ' 条书签 · ' + sec.src + '</span></h2>'
+    + '<div class="keynote">' + sec.keynote + '</div>'
+    + '<div class="tblwrap"><table>'
+    + '<colgroup><col class="c-sym"><col class="c-loc"><col class="c-note"></colgroup>'
+    + '<thead><tr><th>书签</th><th>位置(文件:行)</th><th>角色</th></tr></thead>'
+    + '<tbody>' + rows + '</tbody>'
+    + '</table></div>'
+    + '</section>';
+}
+
+function flowHtml(p) {
+  return '<div class="flow">'
+    + '<div class="flow-head"><span>' + p.flowHead + '</span>'
+    + '<span class="legend"><i class="gt">■ 游戏线程</i><i class="tg">■ TaskGraph</i><i class="rt">■ 渲染线程</i></span></div>'
+    + '<pre>' + p.flow + '</pre></div>';
+}
+
+function bookmarkCount(p) {
+  return p.sections.reduce(function (a, s) { return a + s.rows.length; }, 0);
+}
+
+function postView(p) {
+  var idx = POSTS.indexOf(p);
+  var prev = POSTS[idx - 1], next = POSTS[idx + 1];
+  var toc = p.sections.map(function (s, i) {
+    return '<a data-scroll="sec-' + i + '">' + (i + 1) + ' · ' + s.name + '</a>';
+  }).join('');
+
+  var nav = '<div class="post-nav">'
+    + (prev ? '<a class="prev" href="#/post/' + prev.id + '"><span class="dir-label">← 上一篇</span><span class="t">' + prev.title + '</span></a>' : '<span></span>')
+    + (next ? '<a class="next" href="#/post/' + next.id + '"><span class="dir-label">下一篇 →</span><span class="t">' + next.title + '</span></a>' : '<span></span>')
+    + '</div>';
+
+  var tagPills = p.tags.map(function (t) { return '<span class="pill">' + t + '</span>'; }).join('');
+
+  return '<div class="view post-wrap">'
+    + '<div style="min-width:0;">'
+    + '<a class="crumb" href="#/">← 全部文章</a>'
+    + '<article class="post">'
+    + '<h1>' + p.title + '</h1>'
+    + '<div class="post-meta"><time>' + p.date + '</time><span class="card-tags">' + tagPills + '</span></div>'
+    + '<p class="post-lead">' + p.lead + '</p>'
+    + flowHtml(p)
+    + '<details class="toc-details" open><summary>本页目录</summary><div class="toc-details-inner">' + toc + '</div></details>'
+    + p.sections.map(sectionHtml).join('')
+    + '<div class="notes"><h2>关联笔记</h2><ul>'
+    + p.notes.map(function (x) { return '<li>' + x + '</li>'; }).join('')
+    + '</ul></div>'
+    + nav
+    + '</article>'
+    + '</div>'
+    + '<aside class="toc-aside"><div class="toc-box"><div class="toc-title">本文目录</div>' + toc + '</div></aside>'
+    + '</div>';
+}
+
+function cardHtml(p) {
+  var tagPills = p.tags.map(function (t) { return '<span class="pill">' + t + '</span>'; }).join('');
+  var secs = p.sections.length;
+  return '<article class="card">'
+    + '<div class="card-meta"><time>' + p.date + '</time><div class="card-tags">' + tagPills + '</div></div>'
+    + '<h2 class="card-title"><a href="#/post/' + p.id + '">' + p.title + '</a></h2>'
+    + '<p class="card-ex">' + p.excerpt + '</p>'
+    + '<div class="card-foot"><span>' + bookmarkCount(p) + ' 条书签 · ' + secs + ' 个分组</span><span class="go">阅读全文 →</span></div>'
+    + '</article>';
+}
+
+function allTags() {
+  var seen = {};
+  POSTS.forEach(function (p) { p.tags.forEach(function (t) { seen[t] = 1; }); });
+  return Object.keys(seen);
+}
+
+var filterState = { q: '', tags: {} };
+
+function filteredPosts() {
+  return POSTS.filter(function (p) {
+    var hay = (p.title + ' ' + p.excerpt + ' ' + p.tags.join(' ')).toLowerCase();
+    if (filterState.q && hay.indexOf(filterState.q) === -1) return false;
+    for (var t in filterState.tags) {
+      if (filterState.tags[t] && p.tags.indexOf(t) === -1) return false;
+    }
+    return true;
+  });
+}
+
+function homeView() {
+  var total = POSTS.reduce(function (a, p) { return a + bookmarkCount(p); }, 0);
+  var latest = POSTS.map(function (p) { return p.date; }).sort().reverse()[0];
+  var chips = allTags().map(function (t) {
+    return '<span class="tag-chip" data-tag="' + t + '">' + t + '</span>';
+  }).join('');
+
+  return '<div class="view">'
+    + '<div class="hero">'
+    + '<h1>UE 源码研究笔记</h1>'
+    + '<p class="tagline">基于本地 UE 5.2.1 源检出(<code>D:\\UnrealEngine</code>)的调用链考古:每个调查主题是一篇文章,每行书签可一键复制绝对 <code>路径\\文件:行号</code>,粘贴到 VS 直接跳转。</p>'
+    + '<div class="stats">'
+    + '<div class="stat"><b>' + POSTS.length + '</b><span>篇文章</span></div>'
+    + '<div class="stat"><b>' + total + '</b><span>条源码书签</span></div>'
+    + '<div class="stat"><b>' + latest + '</b><span>最近更新</span></div>'
+    + '</div>'
+    + '<div class="toolbar"><input id="q" type="text" placeholder="搜索标题 / 摘要 / 标签…"><div class="tagbar" id="tagbar">' + chips + '</div></div>'
+    + '</div>'
+    + '<div class="section-label">文 章</div>'
+    + '<div class="post-list" id="postList"></div>'
+    + '<section class="about"><h2>关于 · 记录规则</h2><ul>'
+    + '<li>本站是源码调查的长期记录:每条<b>已验证</b>的调用链 = 一篇文章;新调查追加新文章,不散落其他文件。</li>'
+    + '<li>行格式固定:符号 + 可复制的绝对 <code>路径\\文件:行号</code>(VS Ctrl+G 友好)+ 角色注记(控制流 / 数据所有权 / 线程)。</li>'
+    + '<li>明确区分"源码验证 / 推断 / 未验证运行时";调试栈行号与真实语句存在漂移时以验证结果为准。</li>'
+    + '<li>纯静态单文件,无框架无依赖,双击即看;行号对应本地 UE 5.2.1 检出,引擎更新后以符号名为准重新定位。</li>'
+    + '</ul></section>'
+    + '</div>';
+}
+
+function renderList() {
+  var list = document.getElementById('postList');
+  if (!list) return;
+  var posts = filteredPosts();
+  list.innerHTML = posts.length
+    ? posts.map(cardHtml).join('')
+    : '<div class="empty">没有匹配的文章,换个关键词试试。</div>';
+}
+
+function bindHome() {
+  filterState = { q: '', tags: {} };
+  var q = document.getElementById('q');
+  var bar = document.getElementById('tagbar');
+  if (q) q.addEventListener('input', function () { filterState.q = q.value.trim().toLowerCase(); renderList(); });
+  if (bar) bar.addEventListener('click', function (e) {
+    var chip = e.target.closest('.tag-chip');
+    if (!chip) return;
+    var t = chip.getAttribute('data-tag');
+    filterState.tags[t] = !filterState.tags[t];
+    chip.classList.toggle('on', filterState.tags[t]);
+    renderList();
+  });
+  renderList();
+}
+
+/* ---------- 路由 ---------- */
+
+var LEGACY = {
+  '#tab-render-command': '#/post/render-command-chain',
+  '#tab-init-resource': '#/post/init-resource-chain'
+};
+
+function renderSiteNav() {
+  var el = document.getElementById('siteNav');
+  if (!el) return;
+  var current = (location.hash.match(/^#\/post\/([\w-]+)/) || [])[1];
+  var items = POSTS.map(function (p) {
+    return '<a class="nav-item' + (p.id === current ? ' on' : '') + '" href="#/post/' + p.id + '">'
+      + '<span class="nav-date">' + p.date + '</span>' + (p.navTitle || p.title) + '</a>';
+  }).join('');
+  el.innerHTML = '<a class="nav-home' + (current ? '' : ' on') + '" href="#/">☰ 全部文章</a>'
+    + '<div class="nav-label">文 章 · ' + POSTS.length + '</div>' + items;
+}
+
+function route() {
+  var h = location.hash || '#/';
+  if (LEGACY[h]) { location.replace(LEGACY[h]); return; }
+  renderSiteNav();
+
+  var app = document.getElementById('app');
+  var m = h.match(/^#\/post\/([\w-]+)/);
+  var p = m && POSTS.filter(function (x) { return x.id === m[1]; })[0];
+
+  if (p) {
+    app.innerHTML = postView(p);
+    window.scrollTo(0, 0);
+  } else {
+    app.innerHTML = homeView();
+    bindHome();
+  }
+  updateProgress();
+}
+
+/* ---------- 交互 ---------- */
+
+function updateProgress() {
+  var el = document.getElementById('progress');
+  var max = document.documentElement.scrollHeight - window.innerHeight;
+  el.style.width = max > 0 ? (window.scrollY / max * 100) + '%' : '0%';
+}
+window.addEventListener('scroll', updateProgress, { passive: true });
+window.addEventListener('resize', updateProgress);
+
+document.addEventListener('click', function (e) {
+  var jump = e.target.closest('[data-scroll]');
+  if (jump) {
+    var t = document.getElementById(jump.getAttribute('data-scroll'));
+    if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    return;
+  }
+  var btn = e.target.closest('button.cp');
+  if (!btn) return;
+  var text = btn.getAttribute('data-copy');
+  function markOk() {
+    btn.textContent = '已复制'; btn.classList.add('ok');
+    setTimeout(function () { btn.textContent = '复制'; btn.classList.remove('ok'); }, 1200);
+  }
+  function fallback() {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); markOk(); } catch (err) { btn.textContent = '失败'; }
+    document.body.removeChild(ta);
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(markOk, fallback);
+  } else { fallback(); }
+});
+
+/* ---------- 主题 ---------- */
+
+var themeBtn = document.getElementById('themeBtn');
+function applyTheme(t) {
+  document.documentElement.dataset.theme = t;
+  themeBtn.textContent = t === 'dark' ? '☀' : '☾';
+  themeBtn.title = t === 'dark' ? '切换到亮色' : '切换到暗色';
+  try { localStorage.setItem('uer-theme', t); } catch (e) {}
+}
+themeBtn.addEventListener('click', function () {
+  applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+});
+try { var saved = localStorage.getItem('uer-theme'); applyTheme(saved || 'dark'); } catch (e) { applyTheme('dark'); }
+
+/* ---------- 启动 ---------- */
+window.addEventListener('hashchange', route);
+route();
+</script>
+
+</body>
+</html>
