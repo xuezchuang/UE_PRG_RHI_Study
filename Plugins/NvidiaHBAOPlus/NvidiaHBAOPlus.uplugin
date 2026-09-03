@@ -1,0 +1,39 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "0.1.0",
+	"FriendlyName": "NVIDIA HBAO+",
+	"Description": "NVIDIA HBAO+ 4.0 integrated with Unreal Engine D3D12 rendering and a Slate asset editor.",
+	"Category": "Rendering",
+	"CreatedBy": "Project",
+	"CanContainContent": false,
+	"IsBetaVersion": true,
+	"Installed": false,
+	"SupportedTargetPlatforms": [
+		"Win64"
+	],
+	"Modules": [
+		{
+			"Name": "NvidiaHBAOPlus",
+			"Type": "Runtime",
+			"LoadingPhase": "PostConfigInit",
+			"PlatformAllowList": [
+				"Win64"
+			]
+		},
+		{
+			"Name": "NvidiaHBAOPlusEditor",
+			"Type": "Editor",
+			"LoadingPhase": "Default",
+			"PlatformAllowList": [
+				"Win64"
+			]
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "D3D12RHIAccess",
+			"Enabled": true
+		}
+	]
+}

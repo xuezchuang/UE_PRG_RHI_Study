@@ -1,0 +1,15 @@
+NVIDIA HBAO+
+================
+
+This plugin links against NVIDIA HBAO+ 4.0 and includes the SDK header,
+Win64 import library, and runtime DLL copied from:
+
+D:\graph\nvidia\HBAOPlus
+
+The NVIDIA software is not relicensed by this plugin. The complete source
+license distributed with the SDK is retained at:
+
+ThirdParty/HBAOPlus/LICENSE.txt
+
+Redistribution must retain that license and all original copyright, patent,
+trademark, and attribution notices.

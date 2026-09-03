@@ -1,0 +1,10 @@
+NVIDIA WaveWorks
+================
+
+This plugin links against the NVIDIA WaveWorks 2.x SDK obtained from NVIDIA.
+The SDK headers and binary library retain their original NVIDIA copyright
+notices and are governed by the NVIDIA GameWorks SDK EULA:
+
+https://developer.nvidia.com/gameworks-sdk-eula
+
+The WaveWorks SDK is not relicensed by this plugin.
