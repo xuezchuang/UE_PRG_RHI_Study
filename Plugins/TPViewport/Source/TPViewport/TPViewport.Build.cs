@@ -49,7 +49,7 @@ public class TPViewport : ModuleRules
 				"SlateCore",
                 "RenderCore",
                 "RHI",
-				"D3D12RHIAccess",  // Add dependency on D3D12 RHI Access plugin
+                "D3D12RHIAccess",  // Add dependency on D3D12 RHI Access plugin
 				//"mTest/SimpleShader",
 				// ... add private dependencies that you statically link with here ...	
 			}

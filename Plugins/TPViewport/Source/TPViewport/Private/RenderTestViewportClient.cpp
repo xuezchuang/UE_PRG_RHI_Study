@@ -25,11 +25,17 @@ static TAutoConsoleVariable CVarMyTest(
 	ECVF_RenderThreadSafe
 );
 
-//void FRenderTestViewportClient::Draw(FViewport* Viewport, FCanvas* Canvas)
-void FRenderTestViewportClient::DrawCanvas(FViewport& InViewport, FSceneView& View, FCanvas& InCanvas)
+void FRenderTestViewportClient::Draw(FViewport* InViewport, FCanvas* InCanvas)
 {
-	Viewport = &InViewport;
-	FCanvas* Canvas = &InCanvas;
+	// 注意：故意不调用 FEditorViewportClient::Draw。
+	// 父类 Draw 会构建 FSceneViewFamily -> FRendererModule::BeginRenderingViewFamilies
+	// -> FDeferredShadingSceneRenderer::Render（BasePass/GBuffer/deferred lighting/RDG），
+	// 研究 SimpleShader 阶段不需要这条场景渲染路径。
+	Viewport = InViewport;
+	FCanvas* Canvas = InCanvas;
+
+	// 没有场景渲染帮忙清屏了，Canvas 自己清背景
+	Canvas->Clear(FLinearColor(0.02f, 0.02f, 0.02f));
 	int32 MyTestValue = CVarMyTest.GetValueOnAnyThread();
 	if (MyTestValue == 0)
 	{
@@ -60,7 +66,7 @@ void FRenderTestViewportClient::DrawCanvas(FViewport& InViewport, FSceneView& Vi
 	}
 	else if (MyTestValue == 1)
 	{
-		renderer.Render(RenderTarget,[](){});
+		renderer.Render(RenderTarget, InTexture, [](){});
 		FCanvasTileItem Tile(FVector2D::ZeroVector, RenderTarget->GetResource(), Viewport->GetSizeXY(), FLinearColor::White);
 
 		Canvas->DrawItem(Tile);
@@ -70,6 +76,9 @@ void FRenderTestViewportClient::DrawCanvas(FViewport& InViewport, FSceneView& Vi
 		FCanvasTileItem Tile(FVector2D::ZeroVector, InTexture->GetResource(), Viewport->GetSizeXY(), FLinearColor::Black);
 		Canvas->DrawItem(Tile);
 	}
+
+	// 左下角的坐标轴指示器（纯 Canvas 绘制，不依赖场景渲染）
+	DrawAxes(InViewport, InCanvas);
 
 	FString FileName= FPaths::Combine(FPaths::GameSourceDir(),TEXT("data\\Result.PNG"));
 	renderer.SaveRenderTargetToFile(RenderTarget, FileName);

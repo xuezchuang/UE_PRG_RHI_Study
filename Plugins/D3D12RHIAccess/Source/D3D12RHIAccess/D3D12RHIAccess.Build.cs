@@ -26,9 +26,12 @@ public class D3D12RHIAccess : ModuleRules
 				"CoreUObject",
 				"Engine",
 				"RHI",
+                "D3D12RHI",
 				"RenderCore"
 			}
 		);
+
+        AddEngineThirdPartyPrivateStaticDependencies(Target, "DX12");
 
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
@@ -42,13 +45,13 @@ public class D3D12RHIAccess : ModuleRules
 		{
 			PublicDependencyModuleNames.Add("D3D12RHI");
 			
-			// Add Windows SDK includes
-			PublicSystemIncludePaths.Add("$(WindowsSdkDir)/Include/$(WindowsSDKVersion)/um");
-			PublicSystemIncludePaths.Add("$(WindowsSdkDir)/Include/$(WindowsSDKVersion)/shared");
+			//// Add Windows SDK includes
+			//PublicSystemIncludePaths.Add("$(WindowsSdkDir)/Include/$(WindowsSDKVersion)/um");
+			//PublicSystemIncludePaths.Add("$(WindowsSdkDir)/Include/$(WindowsSDKVersion)/shared");
 			
-			// Add D3D12 libraries
-			PublicSystemLibraries.Add("d3d12.lib");
-			PublicSystemLibraries.Add("dxgi.lib");
+			//// Add D3D12 libraries
+			//PublicSystemLibraries.Add("d3d12.lib");
+			//PublicSystemLibraries.Add("dxgi.lib");
 			
 			// Add preprocessor definition to enable D3D12 code paths
 			PublicDefinitions.Add("WITH_D3D12_RHI=1");

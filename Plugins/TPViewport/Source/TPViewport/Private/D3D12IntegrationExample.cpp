@@ -1,6 +1,18 @@
 #include "D3D12IntegrationExample.h"
 #include "D3D12RHIAccessHelper.h"
 
+#if PLATFORM_WINDOWS && WITH_D3D12_RHI
+
+#include "Windows/AllowWindowsPlatformTypes.h"
+
+#include <d3d12.h>
+#include <dxgi1_6.h>
+
+#include "Windows/HideWindowsPlatformTypes.h"
+
+#endif
+
+
 DEFINE_LOG_CATEGORY_STATIC(LogD3D12Integration, Log, All);
 
 FD3D12IntegrationExample::FD3D12IntegrationExample()

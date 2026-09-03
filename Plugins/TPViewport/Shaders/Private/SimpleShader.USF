@@ -1,26 +1,26 @@
 #include "/Engine/Public/Platform.ush"
 
 int m_nType;
-
 float4 testColor;
 
+// SRV + Sampler
+Texture2D InputTexture;
+SamplerState InputTextureSampler;
+
 void MainVS(
-	in float4 InPosition : ATTRIBUTE0,
-	in float4 InColor : ATTRIBUTE1,
-	in uint GlobalVertexId : SV_VertexID,
-	out float4 OutPosition : SV_POSITION,
-	out float4 OutColor : COLOR0
-	)
+    in float4 InPosition : ATTRIBUTE0,
+    in float4 InColor : ATTRIBUTE1,
+    in uint GlobalVertexId : SV_VertexID,
+    out float4 OutPosition : SV_POSITION,
+    out float4 OutColor : COLOR0,
+    out float2 OutUV : TEXCOORD0
+)
 {
-	//if (m_nType == 40)
-	//{
-	//	OutPosition = InPosition;
-	//	OutColor = InColor;
-	//	return;
-	//}
+    // 你原来的三角形位置/颜色逻辑（保持不变）
 	if (GlobalVertexId == 0)
 	{
-		OutPosition = float4(-0.5, -0.5, 0, 1); // 左下角
+		OutPosition = float4(-0.5, -0.5, 0, 1);
+		OutUV = float2(0, 1);
 		if (m_nType == 0)
 		{
 			OutColor = InColor;
@@ -28,25 +28,44 @@ void MainVS(
 		else
 		{
 			OutColor = float4(1, 0, 0, 1);
-		}	
+		}
 	}
 	else if (GlobalVertexId == 1)
 	{
-		 OutPosition = float4(0.5, -0.5, 0, 1); // 右下角
+		OutPosition = float4(0.5, -0.5, 0, 1);
+		OutUV = float2(1, 1);
 		OutColor = float4(0, 1, 0, 1);
 	}
-	else if (GlobalVertexId == 2)
+	else // GlobalVertexId == 2
 	{
-		OutPosition = float4(0, 0.5, 0, 1); // 上中
-		OutColor = float4(0, 0,1 , 1);
+		OutPosition = float4(0, 0.5, 0, 1);
+		OutUV = float2(0.5, 0);
+		OutColor = float4(0, 0, 1, 1);
 	}
 }
 
 void MainPS(
-	in float4 InPosition : SV_POSITION,
-	in float4 InColor : COLOR0,
-	out float4 OutColor : SV_Target0)
+    in float4 InPosition : SV_POSITION,
+    in float4 InColor : COLOR0,
+    in float2 InUV : TEXCOORD0,
+    out float4 OutColor : SV_Target0
+)
 {
-	OutColor = InColor;
+	if (m_nType == 0)
+	{
+        // 原：输出顶点色
+		OutColor = InColor;
+		return;
+	}
 
+	if (m_nType == 2)
+	{
+        // 验证 CBV（testColor）仍然生效
+		OutColor = testColor;
+		return;
+	}
+
+	// m_nType == 1: InputTexture is read through its SRV and InputTextureSampler.
+	float4 tex = InputTexture.Sample(InputTextureSampler, InUV);
+	OutColor = tex;
 }

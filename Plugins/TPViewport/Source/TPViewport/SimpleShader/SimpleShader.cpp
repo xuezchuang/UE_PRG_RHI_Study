@@ -1,7 +1,7 @@
-
 #include "SimpleShader.h"
 
 #include "Containers/DynamicRHIResourceArray.h"
+#include "Engine/Texture2D.h"
 #include "TextureResource.h"
 #include "Engine/TextureRenderTarget2D.h"
 
@@ -13,6 +13,7 @@
 #include "ImageUtils.h"
 
 #include "RenderResource.h"
+#include "GlobalRenderResources.h"
 #include "RHI.h"
 #include "RenderCommandFence.h"
 #include "Misc/FileHelper.h"
@@ -31,20 +32,9 @@ class FSimpleVertexBuffer : public FVertexBuffer
 public:
 	void InitRHI() override
 	{
-		//FRHIResourceCreateInfo CreateInfo(TEXT("FSimpleVertexBuffer"));
-		//VertexBufferRHI = RHICreateBuffer(sizeof(FColorVertex) * 3, BUF_Static | BUF_VertexBuffer, 0, ERHIAccess::VertexOrIndexBuffer, CreateInfo);
-		//FColorVertex* Vertices = (FColorVertex*)RHILockBuffer(VertexBufferRHI, 0, sizeof(FColorVertex) * 3, RLM_WriteOnly);
-		//Vertices[0].Position = FVector4f(0.0f, 0.0f, 0.5f, 1.0f);
-		//Vertices[0].Color = FVector4f(1.0f, 0.0f, 0.0f, 1.0f);
-		//Vertices[1].Position = FVector4f(1.0f, 0.0f, 0.5f, 1.0f);
-		//Vertices[1].Color = FVector4f(0.0f, 1.0f, 0.0f, 1.0f);
-		//Vertices[2].Position = FVector4f(0.0f, 1.0f, 0.5f, 1.0f);
-		//Vertices[2].Color = FVector4f(0.0f, 0.0f, 1.0f, 1.0f);
-		//RHIUnlockBuffer(VertexBufferRHI);
-
 		TResourceArray<FColorVertex, VERTEXBUFFER_ALIGNMENT> Vertices;
 		Vertices.SetNumUninitialized(3);
-		
+
 		Vertices[0].Position = FVector4f(-0.5f, -0.5f, 0.0f, 1.0f);
 		Vertices[0].Color = FVector4f(1.0f, 0.0f, 0.0f, 1.0f);
 		Vertices[1].Position = FVector4f(0.5f, -0.5f, 0.0f, 1.0f);
@@ -52,7 +42,6 @@ public:
 		Vertices[2].Position = FVector4f(0.0f, 0.5f, 0.0f, 1.0f);
 		Vertices[2].Color = FVector4f(0.0f, 0.0f, 1.0f, 1.0f);
 
-		//FRHIResourceCreateInfo CreateInfo(&Vertices);
 		FRHIResourceCreateInfo CreateInfo(TEXT("FSimpleVertexBuffer"), &Vertices);
 		VertexBufferRHI = RHICreateVertexBuffer(Vertices.GetResourceDataSize(), BUF_Static | BUF_VertexBuffer, CreateInfo);
 	}
@@ -64,6 +53,7 @@ class FColorVertexDeclaration : public FRenderResource
 {
 public:
 	FVertexDeclarationRHIRef VertexDeclarationRHI;
+
 	virtual void InitRHI() override
 	{
 		FVertexDeclarationElementList Elements;
@@ -72,6 +62,7 @@ public:
 		Elements.Add(FVertexElement(0, STRUCT_OFFSET(FColorVertex, Color), VET_Float4, 1, Stride));
 		VertexDeclarationRHI = PipelineStateCache::GetOrCreateVertexDeclaration(Elements);
 	}
+
 	virtual void ReleaseRHI() override
 	{
 		VertexDeclarationRHI.SafeRelease();
@@ -85,11 +76,11 @@ class FSimpleIndexBuffer : public FIndexBuffer
 public:
 	void InitRHI() override
 	{
-		const uint16 Indices[] = { 0, 1, 2/*, 1, 2, 3*/ };
+		const uint16 Indices[] = { 0, 1, 2 };
 
-		TResourceArray <uint16, INDEXBUFFER_ALIGNMENT> IndexBuffer;
-		uint32 NumIndices = UE_ARRAY_COUNT(Indices);
-		IndexBuffer. AddUninitialized (NumIndices);
+		TResourceArray<uint16, INDEXBUFFER_ALIGNMENT> IndexBuffer;
+		const uint32 NumIndices = UE_ARRAY_COUNT(Indices);
+		IndexBuffer.AddUninitialized(NumIndices);
 		FMemory::Memcpy(IndexBuffer.GetData(), Indices, NumIndices * sizeof(uint16));
 
 		FRHIResourceCreateInfo CreateInfo(TEXT("FSimpleIndexBuffer"));
@@ -101,139 +92,151 @@ public:
 
 TGlobalResource<FSimpleIndexBuffer> GSimpleIndexBuffer;
 
-TResourceArray<FColorVertex, VERTEXBUFFER_ALIGNMENT> mTestVertices;
 
+// ------------------------------
+// RenderThread draw
+// ------------------------------
 static void DrawTestShaderRenderTarget_RenderThread(
 	FRHICommandListImmediate& RHICmdList,
 	FTextureRenderTargetResource* OutputRenderTargetResource,
-	//const FVector2D& PixelUVSizeValue
-	int32 nType)
+	int32 nType,
+	FTextureRHIRef InputTextureRHI
+)
 {
 	check(IsInRenderingThread());
-	FRHITexture2D* RenderTargetTexture = OutputRenderTargetResource->GetRenderTargetTexture();
-	//RHICmdList.Transition(FRHITransitionInfo(RenderTargetTexture, ERHIAccess::SRVMask, ERHIAccess::RTV));
-	//RHICmdList.TransitionResource(EResourceTransitionAccess::EWritable, RenderTargetTexture);
+	FRHITexture* ShaderTexture = InputTextureRHI.IsValid()
+		? InputTextureRHI.GetReference()
+		: GWhiteTexture->TextureRHI.GetReference();
+	check(ShaderTexture);
 
-	//FRHIRenderPassInfo RPInfo(OutputRenderTargetResource->GetRenderTargetTexture(), ERenderTargetActions::DontLoad_Store, OutputRenderTargetResource->TextureRHI);
+	FRHITexture2D* RenderTargetTexture = OutputRenderTargetResource->GetRenderTargetTexture();
+
 	FRHIRenderPassInfo RPInfo(RenderTargetTexture, ERenderTargetActions::DontLoad_Store);
 	RHICmdList.BeginRenderPass(RPInfo, TEXT("SimpleRendererShaderPass"));
 	{
-		FIntPoint DisplacementMapResolution(OutputRenderTargetResource->GetSizeX(), OutputRenderTargetResource->GetSizeY());
+		const FIntPoint RTSize(OutputRenderTargetResource->GetSizeX(), OutputRenderTargetResource->GetSizeY());
 
-		// Update viewport.
-		RHICmdList.SetViewport(
-			0, 0, 0.f,
-			DisplacementMapResolution.X, DisplacementMapResolution.Y, 1.f);
+		RHICmdList.SetViewport(0, 0, 0.f, RTSize.X, RTSize.Y, 1.f);
 
-		// Get shaders.
+		// Shaders
 		FGlobalShaderMap* GlobalShaderMap = GetGlobalShaderMap(GMaxRHIFeatureLevel);
 		TShaderMapRef<FSimpleShaderVS> VertexShader(GlobalShaderMap);
 		TShaderMapRef<FSimpleShaderPS> PixelShader(GlobalShaderMap);
 
-		// Set the graphic pipeline state.
+		// PSO
 		FGraphicsPipelineStateInitializer GraphicsPSOInit;
 		RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
 		GraphicsPSOInit.DepthStencilState = TStaticDepthStencilState<false, CF_Always>::GetRHI();
 		GraphicsPSOInit.BlendState = TStaticBlendState<>::GetRHI();
 		GraphicsPSOInit.RasterizerState = TStaticRasterizerState<>::GetRHI();
-		GraphicsPSOInit.PrimitiveType = PT_TriangleList;// PT_TriangleList;
+		GraphicsPSOInit.PrimitiveType = PT_TriangleList;
 		GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GSimpleVertexDeclaration.VertexDeclarationRHI;
 		GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
 		GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 		SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit, 0);
 
+		// Texture2D interface -> FShaderResourceParameter -> SetShaderTexture -> D3D12 SRV descriptor.
 		VertexShader->SetParameters(RHICmdList, VertexShader.GetVertexShader(), nType);
-		PixelShader->SetParameters(RHICmdList, PixelShader.GetPixelShader(), nType);
+		PixelShader->SetParameters(RHICmdList, PixelShader.GetPixelShader(), nType, ShaderTexture);
 
 		RHICmdList.SetStreamSource(0, GSimpleVertexBuffer.VertexBufferRHI, 0);
 
-		// Update viewport.
-		RHICmdList.SetViewport(
-			0, 0, 0.f,
-			OutputRenderTargetResource->GetSizeX(), OutputRenderTargetResource->GetSizeY(), 1.f);
-
-		//RHICmdList.DrawIndexedPrimitive(
-		//	GSimpleIndexBuffer.IndexBufferRHI,
-		//	/* BaseVertexIndex= */ 0,
-		//	/* MinIndex= */ 0,
-		//	/* NumVertices= */ 4,  // œ÷‘⁄”–Àƒ∏ˆ∂•µ„
-		//	/* StartIndex= */ 0,
-		//	/* NumPrimitives= */ 2,  // ¡Ω∏ˆ»˝Ω«–Œ
-		//	/* NumInstances= */ 1);
-
-		//RHICmdList.DrawPrimitive(
-		//	/* BaseVertexIndex= */ 0,
-		//	/* NumPrimitives= */ 1,
-		//	/* NumInstances= */ 1);
-
-
 		RHICmdList.DrawIndexedPrimitive(
 			GSimpleIndexBuffer.IndexBufferRHI,
-			/*BaseVertexIndex=*/ 0,
-			/* MinIndex = */  0,
-			/* NumVertices = */3,
+			/*BaseVertexIndex=*/0,
+			/*MinIndex=*/0,
+			/*NumVertices=*/3,
 			/*StartIndex=*/0,
-			/* NumPrimitives = */1,
-			/*NumInstances=*/1);
+			/*NumPrimitives=*/1,
+			/*NumInstances=*/1
+		);
 	}
 	RHICmdList.EndRenderPass();
-	//RHICmdList.Transition(FRHITransitionInfo(RenderTargetTexture, ERHIAccess::RTV, ERHIAccess::SRVMask));
 }
 
 
+// ------------------------------
+// GameThread API
+// ------------------------------
 void FSimpleRenderer::Render(UTextureRenderTarget2D* RenderTarget, TFunction<void()> OnRenderCompleted)
 {
-	check ( IsInGameThread ());
+	Render(RenderTarget, nullptr, MoveTemp(OnRenderCompleted));
+}
+
+void FSimpleRenderer::Render(UTextureRenderTarget2D* RenderTarget, UTexture2D* InputTexture, TFunction<void()> OnRenderCompleted)
+{
+	check(IsInGameThread());
 
 	if (!RenderTarget)
 	{
 		return;
 	}
 
-	FTextureRenderTargetResource * TextureRenderTargetResource = RenderTarget-> GameThread_GetRenderTargetResource ();
-	//ERHIFeatureLevel::Type FeatureLevel = World->Scene->GetFeatureLevel();
-	ENQUEUE_RENDER_COMMAND(CaptureCommand)(
-		[TextureRenderTargetResource, OnRenderCompleted](FRHICommandListImmediate& RHICmdList)
+	FTextureRenderTargetResource* TextureRenderTargetResource = RenderTarget->GameThread_GetRenderTargetResource();
+	FTextureRHIRef InputTextureRHI;
+	if (InputTexture)
+	{
+		if (FTextureResource* InputTextureResource = InputTexture->GetResource())
 		{
-			DrawTestShaderRenderTarget_RenderThread(RHICmdList, TextureRenderTargetResource,2);// FVector2D(0, 0));
+			InputTextureRHI = InputTextureResource->TextureRHI;
+		}
+	}
+
+	ENQUEUE_RENDER_COMMAND(CaptureCommand)(
+		[TextureRenderTargetResource, InputTextureRHI, OnRenderCompleted](FRHICommandListImmediate& RHICmdList)
+		{
+			// ‰Ω†Âú®ËøôÈáåÊîπ nTypeÔºö0 È°∂ÁÇπËâ≤ / 1 Á∫πÁêÜÈááÊ†∑ / 2 testColor
+			DrawTestShaderRenderTarget_RenderThread(RHICmdList, TextureRenderTargetResource, 1, InputTextureRHI);
 
 			if (OnRenderCompleted)
+			{
 				OnRenderCompleted();
+			}
 		}
-	);
+		);
 }
 
-void FSimpleRenderer::UpdateTextureRegion(UTextureRenderTarget2D* RenderTarget, int32 MipIndex, uint32 NumRegions, FUpdateTextureRegion2D Region, uint32 SrcPitch, uint32 SrcBpp, uint8* SrcData, TFunction<void(uint8* SrcData)> DataCleanupFunc)
+void FSimpleRenderer::UpdateTextureRegion(
+	UTextureRenderTarget2D* RenderTarget,
+	int32 MipIndex,
+	uint32 NumRegions,
+	FUpdateTextureRegion2D Region,
+	uint32 SrcPitch,
+	uint32 SrcBpp,
+	uint8* SrcData,
+	TFunction<void(uint8* SrcData)> DataCleanupFunc
+)
 {
 	check(IsInGameThread());
 	FTextureRenderTargetResource* TextureRenderTargetResource = RenderTarget->GameThread_GetRenderTargetResource();
 	ENQUEUE_RENDER_COMMAND(UpdateTextureRegionsData)(
 		[=](FRHICommandListImmediate& RHICmdList)
-	{
-		FRHITexture2D* TextureRHI = TextureRenderTargetResource->GetTexture2DRHI();
-		//check(TextureRHI->IsValid());
-		if (TextureRHI && TextureRHI->IsValid())
 		{
-			RHIUpdateTexture2D(
-				TextureRHI,
-				MipIndex,
-				Region,
-				SrcPitch,
-				SrcData
-				+ Region.SrcY * SrcPitch
-				+ Region.SrcX * SrcBpp
-			);
+			FRHITexture2D* TextureRHI = TextureRenderTargetResource->GetTexture2DRHI();
+			if (TextureRHI && TextureRHI->IsValid())
+			{
+				RHIUpdateTexture2D(
+					TextureRHI,
+					MipIndex,
+					Region,
+					SrcPitch,
+					SrcData
+					+ Region.SrcY * SrcPitch
+					+ Region.SrcX * SrcBpp
+				);
 
-			DataCleanupFunc(SrcData);
+				DataCleanupFunc(SrcData);
+			}
 		}
-	});
+		);
 }
 
 bool FSimpleRenderer::LoadImageToTexture2D(const FString& ImagePath, UTexture2D*& InTexture, float& Width, float& Height)
 {
 	TArray<uint8> ImageReasultData;
-	FFileHelper::LoadFileToArray(ImageReasultData, *ImagePath);//∂¡»°Õº∆¨µƒ∂˛Ω¯÷∆ ˝æ›
-	FString Ex = FPaths::GetExtension(ImagePath, false);//ªÒ»°Œƒº˛∫Û◊∫
+	FFileHelper::LoadFileToArray(ImageReasultData, *ImagePath);
+	FString Ex = FPaths::GetExtension(ImagePath, false);
+
 	EImageFormat ImageFormat = EImageFormat::Invalid;
 	if (Ex.Equals(TEXT("jpg"), ESearchCase::IgnoreCase) || Ex.Equals(TEXT("jpeg"), ESearchCase::IgnoreCase))
 	{
@@ -247,33 +250,37 @@ bool FSimpleRenderer::LoadImageToTexture2D(const FString& ImagePath, UTexture2D*
 	{
 		ImageFormat = EImageFormat::PNG;
 	}
+
 	IImageWrapperModule& ImageWrapperModule = FModuleManager::LoadModuleChecked<IImageWrapperModule>("ImageWrapper");
-	TSharedPtr<IImageWrapper> ImageWrapperptr = ImageWrapperModule.CreateImageWrapper(ImageFormat);//¥¥Ω®∂‘”¶∏Ò ΩÕº∆¨ø«◊”
-	bool PtrIsValid = ImageWrapperptr.IsValid();
-	if (PtrIsValid && ImageWrapperptr->SetCompressed(ImageReasultData.GetData(), ImageReasultData.GetAllocatedSize()))
+	TSharedPtr<IImageWrapper> ImageWrapperptr = ImageWrapperModule.CreateImageWrapper(ImageFormat);
+
+	if (ImageWrapperptr.IsValid() && ImageWrapperptr->SetCompressed(ImageReasultData.GetData(), ImageReasultData.GetAllocatedSize()))
 	{
-		TArray<uint8> OutRawData;//∏˙ ˝æ›Œﬁπÿµƒ—’…´ ˝æ›
-		ImageWrapperptr->GetRaw(ERGBFormat::BGRA, 8, OutRawData); //∞¥πÊ‘ÚÃ·»° ˝æ›
-		Width = ImageWrapperptr->GetWidth();
-		Height = ImageWrapperptr->GetHeight();
-		InTexture = UTexture2D::CreateTransient(Width, Height, PF_B8G8R8A8);
+		TArray<uint8> OutRawData;
+		ImageWrapperptr->GetRaw(ERGBFormat::BGRA, 8, OutRawData);
+		Width = (float)ImageWrapperptr->GetWidth();
+		Height = (float)ImageWrapperptr->GetHeight();
+
+		InTexture = UTexture2D::CreateTransient((int32)Width, (int32)Height, PF_B8G8R8A8);
 		if (InTexture)
 		{
-			FTexturePlatformData* PlatformData = InTexture->GetPlatformData(); // Use GetPlatformData() accessor
+			FTexturePlatformData* PlatformData = InTexture->GetPlatformData();
 			void* TextureData = PlatformData->Mips[0].BulkData.Lock(LOCK_READ_WRITE);
-			FMemory::Memcpy(TextureData, OutRawData.GetData(), OutRawData.Num());//Ω´ ˝æ›–¥»Î*TextureData
+			FMemory::Memcpy(TextureData, OutRawData.GetData(), OutRawData.Num());
 			PlatformData->Mips[0].BulkData.Unlock();
 			InTexture->UpdateResource();
 			return true;
 		}
 	}
 	return false;
-};
+}
+
 bool FSimpleRenderer::LoadImageToTexture2DEx(const FString& ImagePath, TArray<uint8>& OutRawData, float& Width, float& Height)
 {
 	TArray<uint8> ImageReasultData;
-	FFileHelper::LoadFileToArray(ImageReasultData, *ImagePath);//∂¡»°Õº∆¨µƒ∂˛Ω¯÷∆ ˝æ›
-	FString Ex = FPaths::GetExtension(ImagePath, false);//ªÒ»°Œƒº˛∫Û◊∫
+	FFileHelper::LoadFileToArray(ImageReasultData, *ImagePath);
+	FString Ex = FPaths::GetExtension(ImagePath, false);
+
 	EImageFormat ImageFormat = EImageFormat::Invalid;
 	if (Ex.Equals(TEXT("jpg"), ESearchCase::IgnoreCase) || Ex.Equals(TEXT("jpeg"), ESearchCase::IgnoreCase))
 	{
@@ -287,23 +294,19 @@ bool FSimpleRenderer::LoadImageToTexture2DEx(const FString& ImagePath, TArray<ui
 	{
 		ImageFormat = EImageFormat::PNG;
 	}
+
 	IImageWrapperModule& ImageWrapperModule = FModuleManager::LoadModuleChecked<IImageWrapperModule>("ImageWrapper");
-	TSharedPtr<IImageWrapper> ImageWrapperptr = ImageWrapperModule.CreateImageWrapper(ImageFormat);//¥¥Ω®∂‘”¶∏Ò ΩÕº∆¨ø«◊”
-	bool PtrIsValid = ImageWrapperptr.IsValid();
-	if (PtrIsValid && ImageWrapperptr->SetCompressed(ImageReasultData.GetData(), ImageReasultData.GetAllocatedSize()))
+	TSharedPtr<IImageWrapper> ImageWrapperptr = ImageWrapperModule.CreateImageWrapper(ImageFormat);
+
+	if (ImageWrapperptr.IsValid() && ImageWrapperptr->SetCompressed(ImageReasultData.GetData(), ImageReasultData.GetAllocatedSize()))
 	{
-		ImageWrapperptr->GetRaw(ERGBFormat::BGRA, 8, OutRawData); //∞¥πÊ‘ÚÃ·»° ˝æ›
-		
-		/*for (int32 i = 0; i < OutRawData.Num(); i += 4) {
-			UE_LOG(LogTemp, Warning, TEXT("B:%d,G:%d,R:%d,A:%d; "),OutRawData[i], OutRawData[i+1], OutRawData[i+2], OutRawData[i+3]);
-		}*/
-		Width = ImageWrapperptr->GetWidth();
-		Height = ImageWrapperptr->GetHeight();
+		ImageWrapperptr->GetRaw(ERGBFormat::BGRA, 8, OutRawData);
+		Width = (float)ImageWrapperptr->GetWidth();
+		Height = (float)ImageWrapperptr->GetHeight();
 		return true;
-	
 	}
 	return false;
-};
+}
 
 bool FSimpleRenderer::SaveRenderTargetToFile(UTextureRenderTarget2D* rt, const FString& fileDestination)
 {
@@ -316,11 +319,6 @@ bool FSimpleRenderer::SaveRenderTargetToFile(UTextureRenderTarget2D* rt, const F
 
 	FIntPoint destSize(rt->GetSurfaceWidth(), rt->GetSurfaceHeight());
 	TArray<uint8, FDefaultAllocator64> CompressedBitmap;
-	//FImageUtils::CompressImageArray(destSize.X, destSize.Y, outBMP, CompressedBitmap);
-	// Use PNGCompressImageArray to compress the image data into PNG format
-	//bool imageSavedOk = FFileHelper::SaveArrayToFile(CompressedBitmap, *fileDestination);
 	FImageUtils::PNGCompressImageArray(destSize.X, destSize.Y, outBMP, CompressedBitmap);
-	bool imageSavedOk = FFileHelper::SaveArrayToFile(CompressedBitmap, *fileDestination);
-
-	return imageSavedOk;
+	return FFileHelper::SaveArrayToFile(CompressedBitmap, *fileDestination);
 }

@@ -40,6 +40,14 @@
 		{
 			"Name": "D3D12RHIAccess",
 			"Enabled": true
+		},
+		{
+			"Name": "Water",
+			"Enabled": true
+		},
+		{
+			"Name": "WaterExtras",
+			"Enabled": true
 		}
 	]
 }

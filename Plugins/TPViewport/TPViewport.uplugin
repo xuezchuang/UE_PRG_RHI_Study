@@ -20,5 +20,12 @@
       "Type": "Runtime",
       "LoadingPhase": "PostConfigInit"
     }
-	]
+	],
+  "Plugins": [
+    {
+      "Name": "D3D12RHIAccess",
+      "Enabled": true
+    }
+  ]
+
 }
