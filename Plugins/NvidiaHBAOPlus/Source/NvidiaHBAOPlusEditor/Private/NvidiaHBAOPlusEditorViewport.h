@@ -37,11 +37,10 @@ public:
 protected:
 	virtual TSharedRef<FEditorViewportClient>
 		MakeEditorViewportClient() override;
-	virtual TSharedPtr<SWidget> BuildViewportToolbar() override;
+	// 5.2 基类钩子叫 MakeViewportToolbar（BuildViewportToolbar 是新版名字）。
+	virtual TSharedPtr<SWidget> MakeViewportToolbar() override;
 	virtual void PopulateViewportOverlays(
 		TSharedRef<SOverlay> Overlay) override;
-	virtual TSharedPtr<IPreviewProfileController>
-		CreatePreviewProfileController() override;
 
 private:
 	void BuildPreviewScene();

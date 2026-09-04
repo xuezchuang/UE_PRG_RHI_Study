@@ -114,7 +114,7 @@ SNvidiaHBAOPlusEditorViewport::MakeEditorViewportClient()
 }
 
 TSharedPtr<SWidget>
-SNvidiaHBAOPlusEditorViewport::BuildViewportToolbar()
+SNvidiaHBAOPlusEditorViewport::MakeViewportToolbar()
 {
 	return SNew(
 		NvidiaHBAOPlusEditorViewportLocals::SViewportToolbar,
@@ -152,12 +152,6 @@ void SNvidiaHBAOPlusEditorViewport::PopulateViewportOverlays(
 							})
 				]
 		];
-}
-
-TSharedPtr<IPreviewProfileController>
-SNvidiaHBAOPlusEditorViewport::CreatePreviewProfileController()
-{
-	return MakeShared<FPreviewProfileController>();
 }
 
 void SNvidiaHBAOPlusEditorViewport::BuildPreviewScene()

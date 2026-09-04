@@ -33,8 +33,7 @@ public class NvidiaHBAOPlus : ModuleRules
 			PrivateDependencyModuleNames.AddRange(
 				new[]
 				{
-					"D3D12RHI",
-					"WindowsD3D"
+					"D3D12RHI"
 				});
 			PrivateIncludePaths.Add(
 				Path.Combine(EngineDirectory, "Source/Runtime/D3D12RHI/Private"));

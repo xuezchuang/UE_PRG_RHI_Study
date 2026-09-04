@@ -126,7 +126,7 @@ SNvidiaWaveWorksEditorViewport::MakeEditorViewportClient()
 	return EditorViewportClient.ToSharedRef();
 }
 
-TSharedPtr<SWidget> SNvidiaWaveWorksEditorViewport::BuildViewportToolbar()
+TSharedPtr<SWidget> SNvidiaWaveWorksEditorViewport::MakeViewportToolbar()
 {
 	return SNew(
 		NvidiaWaveWorksEditorViewportLocals::SViewportToolbar,
@@ -159,12 +159,6 @@ void SNvidiaWaveWorksEditorViewport::PopulateViewportOverlays(
 							})
 				]
 		];
-}
-
-TSharedPtr<IPreviewProfileController>
-SNvidiaWaveWorksEditorViewport::CreatePreviewProfileController()
-{
-	return MakeShared<FPreviewProfileController>();
 }
 
 FNvidiaWaveWorksEditorViewportClient::FNvidiaWaveWorksEditorViewportClient(

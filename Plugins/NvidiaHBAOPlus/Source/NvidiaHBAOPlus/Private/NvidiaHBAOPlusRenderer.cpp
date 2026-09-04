@@ -1,5 +1,6 @@
 #include "NvidiaHBAOPlusRenderer.h"
 
+#include "D3D12RHIPrivate.h"
 #include "D3D12CommandContext.h"
 #include "D3D12RHIAccessHelper.h"
 #include "DynamicRHI.h"
@@ -364,7 +365,7 @@ void FNvidiaHBAOPlusRenderer::AddPostOpaquePass(
 				 DepthTextureRHI = MoveTemp(DepthTextureRHI),
 				 ColorTextureRHI = MoveTemp(ColorTextureRHI), ViewportRect,
 				 ProjectionMatrix, ViewSlot,
-				 FrameIndex](FRHICommandListBase &ExecutingCmdList)
+				 FrameIndex](FRHICommandListImmediate &ExecutingCmdList)
 				{
 					if (bShutdown.Load())
 					{
@@ -381,9 +382,14 @@ void FNvidiaHBAOPlusRenderer::AddPostOpaquePass(
 					ID3D12Device *Device = D3D12Access.GetDevice();
 					ID3D12CommandQueue *CommandQueue =
 						D3D12Access.GetCommandQueue();
-					ID3D12GraphicsCommandList *CommandList =
-						D3D12Access.GetGraphicsCommandList(ExecutingCmdList);
 					ID3D12DynamicRHI *D3D12RHI = GetID3D12DynamicRHI();
+					// 5.2 的 ID3D12DynamicRHI::RHIGetGraphicsCommandList 返回
+					// default context 正在录制的原生 command list；HBAO+
+					// 直接往上面录制，RDG pass 期间它正处于 open 状态。
+					ID3D12GraphicsCommandList *CommandList =
+						D3D12RHI != nullptr
+							? D3D12RHI->RHIGetGraphicsCommandList(0)
+							: nullptr;
 					if (Device == nullptr || CommandQueue == nullptr ||
 						CommandList == nullptr || D3D12RHI == nullptr)
 					{
@@ -511,10 +517,13 @@ void FNvidiaHBAOPlusRenderer::AddPostOpaquePass(
 											? GFSDK_SSAO_OVERWRITE_RGB
 											: GFSDK_SSAO_MULTIPLY_RGB;
 
-					// RDG has transitioned scene color to RTV, but D3D12RHI may
-					// defer emitting the native barrier until UE's next draw.
-					// HBAO+ draws directly, so flush that pending barrier first.
-					D3D12RHI->RHIFlushResourceBarriers(ExecutingCmdList, 0);
+					// RDG 已把场景颜色转到 RTV 状态，但 D3D12RHI 可能把原生
+					// barrier 推迟到 UE 下一次绘制才发射。HBAO+ 直接录制，
+					// 先把挂起的 barrier 刷出去。5.2 没有公开的 flush 接口，
+					// 这里用一个到自身的 transition 触发 flush。
+					D3D12RHI->RHITransitionResource(
+						ExecutingCmdList, ColorTextureRHI,
+						D3D12_RESOURCE_STATE_RENDER_TARGET, 0);
 
 					ID3D12DescriptorHeap *DescriptorHeaps[] = {
 						ViewContext->ShaderHeap};
@@ -529,11 +538,9 @@ void FNvidiaHBAOPlusRenderer::AddPostOpaquePass(
 							CommandQueue, CommandList, InputData, SdkParameters,
 							Output, GFSDK_SSAO_RENDER_AO, FrameIndex);
 
-					D3D12RHI->RHIFinishExternalComputeWork(ExecutingCmdList, 0,
-														   CommandList);
+					D3D12RHI->RHIFinishExternalComputeWork(0, CommandList);
 					NvidiaHBAOPlusRendererLocals::InvalidateD3D12GraphicsState(
-						static_cast<FD3D12ContextCommon &>(
-							FD3D12CommandContext::Get(ExecutingCmdList, 0)));
+						FD3D12CommandContext::Get(ExecutingCmdList, 0));
 
 					if (RenderStatus != GFSDK_SSAO_OK)
 					{
@@ -581,7 +588,7 @@ void FNvidiaHBAOPlusRenderer::RequestContextReset()
 		{
 			if (!bShutdown.Load() && GDynamicRHI != nullptr)
 			{
-				RHICmdList.SubmitAndBlockUntilGPUIdle();
+				RHICmdList.BlockUntilGPUIdle();
 				ReleaseContexts_RenderThread();
 				SetStatus(TEXT("Contexts reset; waiting for a rendered view"));
 			}
@@ -597,10 +604,11 @@ void FNvidiaHBAOPlusRenderer::Shutdown()
 
 	if (IsInRenderingThread())
 	{
-		FRHICommandListImmediate &RHICmdList = FRHICommandListImmediate::Get();
+		FRHICommandListImmediate &RHICmdList =
+			FRHICommandListExecutor::GetImmediateCommandList();
 		if (GDynamicRHI != nullptr)
 		{
-			RHICmdList.SubmitAndBlockUntilGPUIdle();
+			RHICmdList.BlockUntilGPUIdle();
 		}
 		ReleaseContexts_RenderThread();
 		return;
@@ -611,7 +619,7 @@ void FNvidiaHBAOPlusRenderer::Shutdown()
 		{
 			if (GDynamicRHI != nullptr)
 			{
-				RHICmdList.SubmitAndBlockUntilGPUIdle();
+				RHICmdList.BlockUntilGPUIdle();
 			}
 			ReleaseContexts_RenderThread();
 		});
